@@ -13,7 +13,7 @@ This roadmap is constrained to what is already documented and implemented in the
 
 ## Current Release Checklist
 
-- Populate `catalog.json` with real addon entries before cutting a production release.
+- Verify `catalog.json` contains the production addon set before cutting a release.
 - Publish addon repositories that satisfy [`docs/addon-release-spec.md`](docs/addon-release-spec.md).
 - Set `ASCENSIONUP_REPO_OWNER`, `ASCENSIONUP_REPO_NAME`, and `ASCENSIONUP_CATALOG_URL` when the production release repo differs from the repository defaults.
 - Cut a `v*` git tag to trigger the Windows release workflow after tests and build remain green.

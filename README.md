@@ -1,4 +1,4 @@
-# Ascension Addon Installer
+# AscensionUp
 
 Windows desktop installer/updater for privately managed Project Ascension addons.
 
@@ -59,11 +59,11 @@ Set these before cutting a real release if the production repo differs.
 
 - Portable Windows zip asset: `AscensionAddonInstaller-win-x64.zip`
 - Expected runtime: Windows 10/11 with WebView2 available
-- Installer self-update behavior: detect latest release and open the direct download URL
+- Installer self-update behavior: detect the latest GitHub release and open the portable zip when present, otherwise fall back to the release page
 
 ## Catalog
 
-The remote catalog lives at the repo root as `catalog.json`. The sample file in this repo starts empty on purpose so you can populate real addon entries before releasing.
+The remote catalog lives at the repo root as `catalog.json`. This repository currently ships starter managed addon entries for `DingTimer` and `QuestBuddy`; replace or extend them to match the production addon set before release.
 
 ## Automation
 
