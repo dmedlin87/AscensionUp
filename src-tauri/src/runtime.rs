@@ -115,19 +115,12 @@ impl AppRuntime {
     }
 
     pub fn open_logs_folder(&self) -> Result<(), InstallerError> {
-        let status = Command::new("explorer")
+        Command::new("explorer")
             .arg(self.paths.logs_dir.as_os_str())
-            .status()
+            .spawn()
             .map_err(|err| {
                 InstallerError::io("open_logs", "Could not open the log folder.", err)
             })?;
-
-        if !status.success() {
-            return Err(InstallerError::validation(
-                "open_logs",
-                "Could not open the log folder.",
-            ));
-        }
 
         Ok(())
     }
