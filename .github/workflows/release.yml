@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npm run test:run
+          cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Build Windows executable
+        run: cargo build --release --manifest-path src-tauri/Cargo.toml
+
+      - name: Package portable zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release | Out-Null
+          Compress-Archive -Path src-tauri\target\release\ascension-addon-installer.exe -DestinationPath release\AscensionAddonInstaller-win-x64.zip -Force
+          $hash = (Get-FileHash release\AscensionAddonInstaller-win-x64.zip -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Path release\AscensionAddonInstaller-win-x64.sha256 -Value $hash
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/AscensionAddonInstaller-win-x64.zip
+            release/AscensionAddonInstaller-win-x64.sha256
