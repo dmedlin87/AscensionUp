@@ -14,6 +14,19 @@
       "manifestAssetName": "addon-manifest.json",
       "assetNamePattern": "DingTimer-v{version}.zip",
       "iconUrl": null
+    },
+    {
+      "addonId": "quest-buddy",
+      "displayName": "QuestBuddy",
+      "description": "Lightweight party quest progress visibility for duos and small parties.",
+      "owner": "dmedlin87",
+      "repo": "QuestBuddy",
+      "targets": ["Bronzebeard"],
+      "folders": ["QuestBuddy"],
+      "manifestStrategy": "release-asset",
+      "manifestAssetName": "addon-manifest.json",
+      "assetNamePattern": "QuestBuddy-v{version}.zip",
+      "iconUrl": null
     }
   ],
   "minInstallerVersion": "1.0.0"
