@@ -56,9 +56,15 @@ function App() {
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
   const metrics = useMemo(() => {
-    const updates = addons.filter((addon) => addon.status === "updateAvailable").length;
-    const installed = addons.filter((addon) => addon.installedVersion).length;
-    const errors = addons.filter((addon) => addon.status === "error").length;
+    let updates = 0;
+    let installed = 0;
+    let errors = 0;
+
+    for (const addon of addons) {
+      if (addon.status === "updateAvailable") updates++;
+      if (addon.installedVersion) installed++;
+      if (addon.status === "error") errors++;
+    }
 
     return {
       total: addons.length,
