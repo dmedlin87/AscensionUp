@@ -42,3 +42,42 @@ pub fn installer_download_url() -> String {
         INSTALLER_ASSET_NAME
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_installer_repo_owner_default() {
+        assert_eq!(installer_repo_owner(), "dmedlin87");
+    }
+
+    #[test]
+    fn test_installer_repo_name_default() {
+        assert_eq!(installer_repo_name(), "AscensionUp");
+    }
+
+    #[test]
+    fn test_catalog_url_default() {
+        assert_eq!(
+            catalog_url(),
+            "https://raw.githubusercontent.com/dmedlin87/AscensionUp/main/catalog.json"
+        );
+    }
+
+    #[test]
+    fn test_installer_release_page_url() {
+        assert_eq!(
+            installer_release_page_url(),
+            "https://github.com/dmedlin87/AscensionUp/releases/latest"
+        );
+    }
+
+    #[test]
+    fn test_installer_download_url() {
+        assert_eq!(
+            installer_download_url(),
+            "https://github.com/dmedlin87/AscensionUp/releases/latest/download/AscensionAddonInstaller-win-x64.zip"
+        );
+    }
+}
