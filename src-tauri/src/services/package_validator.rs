@@ -232,8 +232,8 @@ impl PackageValidator {
                 )
             })?;
 
-            let entry_name = entry.name().to_string();
-            let (components, is_dir) = normalize_zip_components(&entry_name)?;
+            let entry_name = entry.name();
+            let (components, is_dir) = normalize_zip_components(entry_name)?;
             if components.is_empty() {
                 continue;
             }
@@ -245,14 +245,16 @@ impl PackageValidator {
                 ));
             }
 
-            let top_level = components[0].clone();
-            if !expected.contains(&top_level) {
+            let top_level = components[0];
+            if !expected.contains(top_level) {
                 return Err(InstallerError::validation(
                     "zip_structure",
                     "Downloaded release zip is malformed.",
                 ));
             }
-            found.insert(top_level);
+            if !found.contains(top_level) {
+                found.insert(top_level.to_string());
+            }
 
             let destination = join_components(stage_dir, &components);
             if !destination.starts_with(stage_dir) {
@@ -317,22 +319,21 @@ fn normalize_folder_set(values: &[String]) -> BTreeSet<String> {
         .collect()
 }
 
-fn normalize_zip_components(raw: &str) -> Result<(Vec<String>, bool), InstallerError> {
-    let normalized = raw.replace('\\', "/");
-    if normalized.starts_with('/') {
+fn normalize_zip_components(raw: &str) -> Result<(Vec<&str>, bool), InstallerError> {
+    if raw.starts_with('/') || raw.starts_with('\\') {
         return Err(InstallerError::validation(
             "zip_traversal",
             "The release package attempted to write outside the addon directory.",
         ));
     }
-    let is_dir = normalized.ends_with('/');
-    let trimmed = normalized.trim_end_matches('/');
+    let is_dir = raw.ends_with('/') || raw.ends_with('\\');
+    let trimmed = raw.trim_end_matches(|c| c == '/' || c == '\\');
     if trimmed.is_empty() {
         return Ok((Vec::new(), true));
     }
 
     let mut components = Vec::new();
-    for component in trimmed.split('/') {
+    for component in trimmed.split(|c| c == '/' || c == '\\') {
         if component.is_empty() || component == "." || component == ".." || component.contains(':')
         {
             return Err(InstallerError::validation(
@@ -340,16 +341,16 @@ fn normalize_zip_components(raw: &str) -> Result<(Vec<String>, bool), InstallerE
                 "The release package attempted to write outside the addon directory.",
             ));
         }
-        components.push(component.to_string());
+        components.push(component);
     }
 
     Ok((components, is_dir))
 }
 
-fn join_components(root: &Path, components: &[String]) -> PathBuf {
+fn join_components<S: AsRef<str>>(root: &Path, components: &[S]) -> PathBuf {
     let mut destination = root.to_path_buf();
     for component in components {
-        destination.push(component);
+        destination.push(component.as_ref());
     }
     destination
 }
