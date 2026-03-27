@@ -16,6 +16,7 @@ const apiMocks = vi.hoisted(() => ({
   confirmGamePath: vi.fn<
     (gamePath: string, addonPath: string, gameExecutablePath?: string | null) => Promise<AppSnapshot>
   >(),
+  refreshCatalog: vi.fn<() => Promise<AppSnapshot>>(),
   installAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
   updateAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
   updateAllAddons: vi.fn<() => Promise<OperationResult>>(),
@@ -30,6 +31,7 @@ vi.mock("./app/api", () => ({
   checkInstallerUpdate: apiMocks.checkInstallerUpdate,
   inspectGamePath: apiMocks.inspectGamePath,
   confirmGamePath: apiMocks.confirmGamePath,
+  refreshCatalog: apiMocks.refreshCatalog,
   installAddon: apiMocks.installAddon,
   updateAddon: apiMocks.updateAddon,
   updateAllAddons: apiMocks.updateAllAddons,
@@ -102,6 +104,7 @@ describe("App", () => {
     vi.resetAllMocks();
     vi.spyOn(window, "confirm").mockReturnValue(true);
     apiMocks.bootstrapApp.mockResolvedValue(configuredSnapshot);
+    apiMocks.refreshCatalog.mockResolvedValue(configuredSnapshot);
     apiMocks.checkInstallerUpdate.mockResolvedValue({
       currentVersion: "1.0.0",
       latestVersion: "1.0.1",
@@ -149,6 +152,8 @@ describe("App", () => {
         name: /Bind Install/i,
       }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Welcome to AscensionUp/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Setup Required/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Choose Folder/i })).toBeInTheDocument();
   });
 
