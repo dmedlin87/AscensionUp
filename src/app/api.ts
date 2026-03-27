@@ -66,37 +66,31 @@ export function refreshCatalog() {
   return invokeCommand<AppSnapshot>("refreshCatalog");
 }
 
-export function installAddon(addonId: string, allowWhileGameRunning: boolean) {
+export function installAddon(addonId: string) {
   return invokeCommand<OperationResult>("installAddon", {
     addonId,
-    allowWhileGameRunning,
   });
 }
 
-export function updateAddon(addonId: string, allowWhileGameRunning: boolean) {
+export function updateAddon(addonId: string) {
   return invokeCommand<OperationResult>("updateAddon", {
     addonId,
-    allowWhileGameRunning,
   });
 }
 
-export function updateAllAddons(allowWhileGameRunning: boolean) {
-  return invokeCommand<OperationResult>("updateAllAddons", {
-    allowWhileGameRunning,
-  });
+export function updateAllAddons() {
+  return invokeCommand<OperationResult>("updateAllAddons");
 }
 
-export function uninstallAddon(addonId: string, allowWhileGameRunning: boolean) {
+export function uninstallAddon(addonId: string) {
   return invokeCommand<OperationResult>("uninstallAddon", {
     addonId,
-    allowWhileGameRunning,
   });
 }
 
-export function rollbackAddon(addonId: string, allowWhileGameRunning: boolean) {
+export function rollbackAddon(addonId: string) {
   return invokeCommand<OperationResult>("rollbackAddon", {
     addonId,
-    allowWhileGameRunning,
   });
 }
 

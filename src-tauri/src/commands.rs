@@ -135,13 +135,10 @@ pub async fn refreshCatalog(
 #[tauri::command]
 pub async fn installAddon(
     addon_id: String,
-    allow_while_game_running: bool,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
     let result = async {
-        let notice =
-            AddonInstaller::install_or_update(runtime.inner(), &addon_id, allow_while_game_running)
-                .await?;
+        let notice = AddonInstaller::install_or_update(runtime.inner(), &addon_id).await?;
         let snapshot = snapshot_for_current_state(runtime.inner()).await?;
         Ok(OperationResult { snapshot, notice })
     }
@@ -157,20 +154,18 @@ pub async fn installAddon(
 #[tauri::command]
 pub async fn updateAddon(
     addon_id: String,
-    allow_while_game_running: bool,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
-    installAddon(addon_id, allow_while_game_running, runtime).await
+    installAddon(addon_id, runtime).await
 }
 
 #[allow(non_snake_case)]
 #[tauri::command]
 pub async fn updateAllAddons(
-    allow_while_game_running: bool,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
     let result = async {
-        let notice = AddonInstaller::update_all(runtime.inner(), allow_while_game_running).await?;
+        let notice = AddonInstaller::update_all(runtime.inner()).await?;
         let snapshot = snapshot_for_current_state(runtime.inner()).await?;
         Ok(OperationResult { snapshot, notice })
     }
@@ -186,12 +181,10 @@ pub async fn updateAllAddons(
 #[tauri::command]
 pub async fn uninstallAddon(
     addon_id: String,
-    allow_while_game_running: bool,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
     let result = async {
-        let notice =
-            AddonInstaller::uninstall(runtime.inner(), &addon_id, allow_while_game_running)?;
+        let notice = AddonInstaller::uninstall(runtime.inner(), &addon_id)?;
         let snapshot = snapshot_for_current_state(runtime.inner()).await?;
         Ok(OperationResult { snapshot, notice })
     }
@@ -207,12 +200,10 @@ pub async fn uninstallAddon(
 #[tauri::command]
 pub async fn rollbackAddon(
     addon_id: String,
-    allow_while_game_running: bool,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
     let result = async {
-        let notice =
-            AddonInstaller::rollback(runtime.inner(), &addon_id, allow_while_game_running)?;
+        let notice = AddonInstaller::rollback(runtime.inner(), &addon_id)?;
         let snapshot = snapshot_for_current_state(runtime.inner()).await?;
         Ok(OperationResult { snapshot, notice })
     }
@@ -281,7 +272,7 @@ async fn snapshot_for_current_state(runtime: &AppRuntime) -> Result<AppSnapshot,
         last_catalog_refresh_at: state.last_catalog_refresh_at.clone(),
         addon_rows,
         log_directory: runtime.logger.logs_dir().display().to_string(),
-        game_running: AddonInstaller::detect_game_running(&state),
+        game_running: false,
         installer_release_page_url: app_config::installer_release_page_url(),
     })
 }

@@ -4,7 +4,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use sysinfo::System;
 use uuid::Uuid;
 use walkdir::WalkDir;
 
@@ -25,11 +24,9 @@ impl AddonInstaller {
     pub async fn install_or_update(
         runtime: &AppRuntime,
         addon_id: &str,
-        allow_while_game_running: bool,
     ) -> Result<Option<String>, InstallerError> {
         let mut state = runtime.settings_store().load()?;
         let addon_path = configured_addon_path(&state)?;
-        ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
 
         let catalog_resolution = runtime
             .catalog_service()
@@ -90,11 +87,9 @@ impl AddonInstaller {
 
     pub async fn update_all(
         runtime: &AppRuntime,
-        allow_while_game_running: bool,
     ) -> Result<Option<String>, InstallerError> {
         let mut state = runtime.settings_store().load()?;
         let addon_path = configured_addon_path(&state)?;
-        ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
 
         let catalog_resolution = runtime
             .catalog_service()
@@ -183,11 +178,9 @@ impl AddonInstaller {
     pub fn rollback(
         runtime: &AppRuntime,
         addon_id: &str,
-        allow_while_game_running: bool,
     ) -> Result<Option<String>, InstallerError> {
         let mut state = runtime.settings_store().load()?;
         let addon_path = configured_addon_path(&state)?;
-        ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
 
         let installed = state
             .installed_addons
@@ -260,11 +253,9 @@ impl AddonInstaller {
     pub fn uninstall(
         runtime: &AppRuntime,
         addon_id: &str,
-        allow_while_game_running: bool,
     ) -> Result<Option<String>, InstallerError> {
         let mut state = runtime.settings_store().load()?;
         let addon_path = configured_addon_path(&state)?;
-        ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
 
         let installed = state
             .installed_addons
@@ -289,30 +280,6 @@ impl AddonInstaller {
                 .unwrap_or_else(|| addon_id.to_string())
         )))
     }
-
-    pub fn detect_game_running(state: &LocalState) -> bool {
-        let Some(game_path) = state.game_path.as_ref() else {
-            return false;
-        };
-
-        let game_root = PathBuf::from(game_path);
-        let saved_executable = state
-            .game_executable_path
-            .as_ref()
-            .map(PathBuf::from)
-            .and_then(|path| path.file_name().map(|name| name.to_os_string()));
-
-        let system = System::new_all();
-
-        system.processes().values().any(|process| {
-            let path_matches = process.exe().is_some_and(|exe| exe.starts_with(&game_root));
-            let name_matches = saved_executable
-                .as_ref()
-                .is_some_and(|saved_name| process.name() == saved_name);
-            path_matches || name_matches
-        })
-    }
-
     async fn install_resolved_release(
         runtime: &AppRuntime,
         state: &mut LocalState,
@@ -427,25 +394,6 @@ fn configured_addon_path(state: &LocalState) -> Result<PathBuf, InstallerError> 
     }
 
     Ok(addon_path)
-}
-
-fn ensure_game_not_blocking(
-    runtime: &AppRuntime,
-    state: &LocalState,
-    allow_while_game_running: bool,
-) -> Result<(), InstallerError> {
-    if AddonInstaller::detect_game_running(state) && !allow_while_game_running {
-        runtime.logger.warn(
-            "game_process",
-            "Ascension appears to be running and the operation requires confirmation.",
-        );
-        return Err(InstallerError::validation(
-            "game_running",
-            "Ascension appears to be running. Close it or confirm that you want to continue.",
-        ));
-    }
-
-    Ok(())
 }
 
 fn ensure_no_folder_overlap(

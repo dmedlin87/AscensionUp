@@ -16,21 +16,11 @@ const apiMocks = vi.hoisted(() => ({
   confirmGamePath: vi.fn<
     (gamePath: string, addonPath: string, gameExecutablePath?: string | null) => Promise<AppSnapshot>
   >(),
-  installAddon: vi.fn<
-    (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
-  >(),
-  updateAddon: vi.fn<
-    (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
-  >(),
-  updateAllAddons: vi.fn<
-    (allowWhileGameRunning: boolean) => Promise<OperationResult>
-  >(),
-  uninstallAddon: vi.fn<
-    (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
-  >(),
-  rollbackAddon: vi.fn<
-    (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
-  >(),
+  installAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
+  updateAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
+  updateAllAddons: vi.fn<() => Promise<OperationResult>>(),
+  uninstallAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
+  rollbackAddon: vi.fn<(addonId: string) => Promise<OperationResult>>(),
   openLogsFolder: vi.fn<() => Promise<boolean>>(),
   dialogOpen: vi.fn(),
 }));
@@ -136,8 +126,9 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", { name: /Priest Helper/i }),
     ).toBeInTheDocument();
-    expect(screen.getByText(/Update Available/i)).toBeInTheDocument();
+    expect(screen.getByText(/Upgrade 1\.0\.0 to 1\.1\.0/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Update All/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /Addon Manager/i })).toBeInTheDocument();
   });
 
   it("shows setup guidance when the game path is missing", async () => {
@@ -155,7 +146,7 @@ describe("App", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: /Point the installer at the correct Ascension client/i,
+        name: /Bind Install/i,
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Choose Folder/i })).toBeInTheDocument();
@@ -195,7 +186,7 @@ describe("App", () => {
       ),
     );
     await waitFor(() =>
-      expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper", false),
+      expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper"),
     );
   });
 });
