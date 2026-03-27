@@ -17,7 +17,10 @@ pub struct CatalogService {
 
 impl CatalogService {
     pub fn new(catalog_url: String, cache_file: PathBuf) -> Self {
-        Self { catalog_url, cache_file }
+        Self {
+            catalog_url,
+            cache_file,
+        }
     }
 
     pub async fn load_catalog(
@@ -43,7 +46,10 @@ impl CatalogService {
                 Ok(catalog) => {
                     logger.warn(
                         "catalog",
-                        format!("Using cached catalog because the remote fetch failed: {}", remote_error),
+                        format!(
+                            "Using cached catalog because the remote fetch failed: {}",
+                            remote_error
+                        ),
                     );
                     CatalogResolution {
                         catalog: Some(catalog),
@@ -81,16 +87,21 @@ impl CatalogService {
         logger: &LogService,
     ) -> Result<Catalog, InstallerError> {
         logger.info("catalog", format!("Fetching {}", self.catalog_url));
-        let response = client
-            .get(&self.catalog_url)
-            .send()
-            .await
-            .map_err(|err| InstallerError::network("catalog_fetch", "Could not reach the remote catalog.", err.to_string()))?;
+        let response = client.get(&self.catalog_url).send().await.map_err(|err| {
+            InstallerError::network(
+                "catalog_fetch",
+                "Could not reach the remote catalog.",
+                err.to_string(),
+            )
+        })?;
 
         if !response.status().is_success() {
             return Err(InstallerError::network(
                 "catalog_fetch",
-                format!("Could not load the remote catalog (HTTP {}).", response.status()),
+                format!(
+                    "Could not load the remote catalog (HTTP {}).",
+                    response.status()
+                ),
                 response.status().to_string(),
             ));
         }

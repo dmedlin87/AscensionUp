@@ -20,7 +20,9 @@ pub fn run() {
                 Box::new(io::Error::new(io::ErrorKind::Other, error.to_string()))
                     as Box<dyn std::error::Error>
             })?;
-            runtime.logger.info("startup", "Ascension Addon Installer started.");
+            runtime
+                .logger
+                .info("startup", "Ascension Addon Installer started.");
             app.manage(runtime);
             Ok(())
         })

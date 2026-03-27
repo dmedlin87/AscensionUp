@@ -32,7 +32,11 @@ impl PackageValidator {
             ));
         }
 
-        if !manifest.target_support.iter().any(|target| target == TARGET_NAME) {
+        if !manifest
+            .target_support
+            .iter()
+            .any(|target| target == TARGET_NAME)
+        {
             return Err(InstallerError::validation(
                 "manifest_target",
                 "This addon does not support the selected target.",
@@ -47,7 +51,10 @@ impl PackageValidator {
             ));
         }
 
-        Self::validate_semver(&manifest.version, "The addon manifest version is not valid semver.")?;
+        Self::validate_semver(
+            &manifest.version,
+            "The addon manifest version is not valid semver.",
+        )?;
         Self::validate_semver(
             &manifest.min_installer_version,
             "The manifest minInstallerVersion is not valid semver.",
@@ -304,7 +311,10 @@ impl PackageValidator {
 }
 
 fn normalize_folder_set(values: &[String]) -> BTreeSet<String> {
-    values.iter().map(|value| value.trim().to_string()).collect()
+    values
+        .iter()
+        .map(|value| value.trim().to_string())
+        .collect()
 }
 
 fn normalize_zip_components(raw: &str) -> Result<(Vec<String>, bool), InstallerError> {
@@ -323,7 +333,8 @@ fn normalize_zip_components(raw: &str) -> Result<(Vec<String>, bool), InstallerE
 
     let mut components = Vec::new();
     for component in trimmed.split('/') {
-        if component.is_empty() || component == "." || component == ".." || component.contains(':') {
+        if component.is_empty() || component == "." || component == ".." || component.contains(':')
+        {
             return Err(InstallerError::validation(
                 "zip_traversal",
                 "The release package attempted to write outside the addon directory.",
@@ -377,7 +388,8 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let stage = temp.path().join("stage");
 
-        let result = PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
+        let result =
+            PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
 
         assert!(result.is_ok());
         assert!(stage.join("MyAddon").join("main.lua").exists());
@@ -389,7 +401,8 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let stage = temp.path().join("stage");
 
-        let result = PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
+        let result =
+            PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
 
         assert!(result.is_err());
     }
@@ -400,7 +413,8 @@ mod tests {
         let temp = tempdir().expect("tempdir");
         let stage = temp.path().join("stage");
 
-        let result = PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
+        let result =
+            PackageValidator::validate_and_extract(&zip_path, &[String::from("MyAddon")], &stage);
 
         assert!(result.is_err());
     }

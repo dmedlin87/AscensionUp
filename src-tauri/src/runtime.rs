@@ -37,13 +37,22 @@ pub struct AppRuntime {
 impl AppRuntime {
     pub fn new(app: &AppHandle) -> Result<Self, InstallerError> {
         let config_dir = app.path().app_config_dir().map_err(|err| {
-            InstallerError::validation("path_resolution", format!("Could not resolve app config directory: {err}"))
+            InstallerError::validation(
+                "path_resolution",
+                format!("Could not resolve app config directory: {err}"),
+            )
         })?;
         let data_dir = app.path().app_data_dir().map_err(|err| {
-            InstallerError::validation("path_resolution", format!("Could not resolve app data directory: {err}"))
+            InstallerError::validation(
+                "path_resolution",
+                format!("Could not resolve app data directory: {err}"),
+            )
         })?;
         let cache_dir = app.path().app_cache_dir().map_err(|err| {
-            InstallerError::validation("path_resolution", format!("Could not resolve app cache directory: {err}"))
+            InstallerError::validation(
+                "path_resolution",
+                format!("Could not resolve app cache directory: {err}"),
+            )
         })?;
 
         let logs_dir = data_dir.join("logs");
@@ -53,13 +62,20 @@ impl AppRuntime {
 
         for path in [&config_dir, &data_dir, &cache_dir, &logs_dir, &backups_dir] {
             fs::create_dir_all(path).map_err(|err| {
-                InstallerError::io("path_setup", format!("Could not create '{}'.", path.display()), err)
+                InstallerError::io(
+                    "path_setup",
+                    format!("Could not create '{}'.", path.display()),
+                    err,
+                )
             })?;
         }
 
         let logger = Arc::new(LogService::new(&logs_dir)?);
         let http_client = Client::builder()
-            .user_agent(format!("AscensionAddonInstaller/{}", env!("CARGO_PKG_VERSION")))
+            .user_agent(format!(
+                "AscensionAddonInstaller/{}",
+                env!("CARGO_PKG_VERSION")
+            ))
             .build()
             .map_err(|err| {
                 InstallerError::network(
@@ -88,7 +104,10 @@ impl AppRuntime {
     }
 
     pub fn catalog_service(&self) -> CatalogService {
-        CatalogService::new(self.catalog_url.clone(), self.paths.catalog_cache_file.clone())
+        CatalogService::new(
+            self.catalog_url.clone(),
+            self.paths.catalog_cache_file.clone(),
+        )
     }
 
     pub fn github_service(&self) -> GitHubReleaseService {
@@ -99,7 +118,9 @@ impl AppRuntime {
         let status = Command::new("explorer")
             .arg(self.paths.logs_dir.as_os_str())
             .status()
-            .map_err(|err| InstallerError::io("open_logs", "Could not open the log folder.", err))?;
+            .map_err(|err| {
+                InstallerError::io("open_logs", "Could not open the log folder.", err)
+            })?;
 
         if !status.success() {
             return Err(InstallerError::validation(
@@ -118,9 +139,19 @@ impl AppRuntime {
 
 pub fn clear_directory(path: &Path) -> Result<(), InstallerError> {
     if path.exists() {
-        fs::remove_dir_all(path)
-            .map_err(|err| InstallerError::io("cleanup", format!("Could not clear '{}'.", path.display()), err))?;
+        fs::remove_dir_all(path).map_err(|err| {
+            InstallerError::io(
+                "cleanup",
+                format!("Could not clear '{}'.", path.display()),
+                err,
+            )
+        })?;
     }
-    fs::create_dir_all(path)
-        .map_err(|err| InstallerError::io("cleanup", format!("Could not recreate '{}'.", path.display()), err))
+    fs::create_dir_all(path).map_err(|err| {
+        InstallerError::io(
+            "cleanup",
+            format!("Could not recreate '{}'.", path.display()),
+            err,
+        )
+    })
 }

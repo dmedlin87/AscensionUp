@@ -45,7 +45,10 @@ impl AddonInstaller {
         let addon = catalog
             .addons
             .iter()
-            .find(|entry| entry.addon_id == addon_id && entry.targets.iter().any(|target| target == TARGET_NAME))
+            .find(|entry| {
+                entry.addon_id == addon_id
+                    && entry.targets.iter().any(|target| target == TARGET_NAME)
+            })
             .cloned()
             .ok_or_else(|| {
                 InstallerError::validation(
@@ -112,7 +115,10 @@ impl AddonInstaller {
             let Some(addon) = catalog
                 .addons
                 .iter()
-                .find(|entry| entry.addon_id == addon_id && entry.targets.iter().any(|target| target == TARGET_NAME))
+                .find(|entry| {
+                    entry.addon_id == addon_id
+                        && entry.targets.iter().any(|target| target == TARGET_NAME)
+                })
                 .cloned()
             else {
                 failures.push(format!("{addon_id}: missing from catalog"));
@@ -130,25 +136,27 @@ impl AddonInstaller {
                 .fetch_addon_release_metadata(&addon, &runtime.logger)
                 .await
             {
-                Ok(release) => match compare_versions(&installed_version, &release.manifest.version) {
-                    Ok(std::cmp::Ordering::Less) => {
-                        if let Err(error) = Self::install_resolved_release(
-                            runtime,
-                            &mut state,
-                            &addon,
-                            &release,
-                            &addon_path,
-                        )
-                        .await
-                        {
-                            failures.push(format!("{}: {}", addon.display_name, error));
-                        } else {
-                            updated.push(addon.display_name.clone());
+                Ok(release) => {
+                    match compare_versions(&installed_version, &release.manifest.version) {
+                        Ok(std::cmp::Ordering::Less) => {
+                            if let Err(error) = Self::install_resolved_release(
+                                runtime,
+                                &mut state,
+                                &addon,
+                                &release,
+                                &addon_path,
+                            )
+                            .await
+                            {
+                                failures.push(format!("{}: {}", addon.display_name, error));
+                            } else {
+                                updated.push(addon.display_name.clone());
+                            }
                         }
+                        Ok(_) => {}
+                        Err(error) => failures.push(format!("{}: {}", addon.display_name, error)),
                     }
-                    Ok(_) => {}
-                    Err(error) => failures.push(format!("{}: {}", addon.display_name, error)),
-                },
+                }
                 Err(error) => failures.push(format!("{}: {}", addon.display_name, error)),
             }
         }
@@ -181,9 +189,16 @@ impl AddonInstaller {
         let addon_path = configured_addon_path(&state)?;
         ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
 
-        let installed = state.installed_addons.get(addon_id).cloned().ok_or_else(|| {
-            InstallerError::validation("rollback_missing", "This addon is not installed by the app.")
-        })?;
+        let installed = state
+            .installed_addons
+            .get(addon_id)
+            .cloned()
+            .ok_or_else(|| {
+                InstallerError::validation(
+                    "rollback_missing",
+                    "This addon is not installed by the app.",
+                )
+            })?;
 
         let backup_path = installed.backup_path.clone().ok_or_else(|| {
             InstallerError::validation("rollback_missing", "No rollback version is available.")
@@ -236,7 +251,10 @@ impl AddonInstaller {
         );
         runtime.settings_store().save(&state)?;
 
-        Ok(Some(format!("Rolled back {} to {}.", addon_id, backup_version)))
+        Ok(Some(format!(
+            "Rolled back {} to {}.",
+            addon_id, backup_version
+        )))
     }
 
     pub fn detect_game_running(state: &LocalState) -> bool {
@@ -254,9 +272,7 @@ impl AddonInstaller {
         let system = System::new_all();
 
         system.processes().values().any(|process| {
-            let path_matches = process
-                .exe()
-                .is_some_and(|exe| exe.starts_with(&game_root));
+            let path_matches = process.exe().is_some_and(|exe| exe.starts_with(&game_root));
             let name_matches = saved_executable
                 .as_ref()
                 .is_some_and(|saved_name| process.name() == saved_name);
@@ -301,7 +317,11 @@ impl AddonInstaller {
             addon.addon_id,
             Uuid::new_v4()
         ));
-        PackageValidator::validate_and_extract(&package_path, &release.manifest.folders, &stage_root)?;
+        PackageValidator::validate_and_extract(
+            &package_path,
+            &release.manifest.folders,
+            &stage_root,
+        )?;
 
         let backup_root = runtime.paths.backups_dir.join(&addon.addon_id);
         let previous = state.installed_addons.get(&addon.addon_id).cloned();
@@ -360,7 +380,10 @@ fn configured_addon_path(state: &LocalState) -> Result<PathBuf, InstallerError> 
         .as_ref()
         .map(PathBuf::from)
         .ok_or_else(|| {
-            InstallerError::validation("path_missing", "Choose and confirm an Ascension addon folder first.")
+            InstallerError::validation(
+                "path_missing",
+                "Choose and confirm an Ascension addon folder first.",
+            )
         })?;
 
     if !addon_path.is_dir() {
@@ -535,7 +558,10 @@ fn copy_dir_all(source: &Path, destination: &Path) -> Result<(), InstallerError>
         let relative = entry.path().strip_prefix(source).map_err(|err| {
             InstallerError::validation_with_details(
                 "copy_dir",
-                format!("Could not derive a relative path for '{}'.", entry.path().display()),
+                format!(
+                    "Could not derive a relative path for '{}'.",
+                    entry.path().display()
+                ),
                 err,
             )
         })?;

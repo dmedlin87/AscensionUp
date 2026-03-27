@@ -46,7 +46,9 @@ impl GitHubReleaseService {
         addon: &CatalogAddon,
         logger: &LogService,
     ) -> Result<ResolvedAddonRelease, InstallerError> {
-        let release = self.latest_release(&addon.owner, &addon.repo, logger).await?;
+        let release = self
+            .latest_release(&addon.owner, &addon.repo, logger)
+            .await?;
         let manifest_asset = release
             .assets
             .iter()
@@ -61,11 +63,16 @@ impl GitHubReleaseService {
                 )
             })?;
 
-        let manifest_body = self.download_text(&manifest_asset.browser_download_url).await?;
+        let manifest_body = self
+            .download_text(&manifest_asset.browser_download_url)
+            .await?;
         let manifest: AddonManifest = serde_json::from_str(&manifest_body).map_err(|err| {
             InstallerError::validation_with_details(
                 "manifest_parse",
-                format!("The manifest for '{}' is not valid JSON.", addon.display_name),
+                format!(
+                    "The manifest for '{}' is not valid JSON.",
+                    addon.display_name
+                ),
                 err,
             )
         })?;
@@ -99,19 +106,30 @@ impl GitHubReleaseService {
     ) -> Result<(), InstallerError> {
         logger.info("github", format!("Downloading {}", url));
         let response = self.client.get(url).send().await.map_err(|err| {
-            InstallerError::network("asset_download", "Could not download the release asset.", err.to_string())
+            InstallerError::network(
+                "asset_download",
+                "Could not download the release asset.",
+                err.to_string(),
+            )
         })?;
 
         if !response.status().is_success() {
             return Err(InstallerError::network(
                 "asset_download",
-                format!("Could not download the release asset (HTTP {}).", response.status()),
+                format!(
+                    "Could not download the release asset (HTTP {}).",
+                    response.status()
+                ),
                 response.status().to_string(),
             ));
         }
 
         let bytes = response.bytes().await.map_err(|err| {
-            InstallerError::network("asset_download", "Could not read the release asset.", err.to_string())
+            InstallerError::network(
+                "asset_download",
+                "Could not read the release asset.",
+                err.to_string(),
+            )
         })?;
 
         std::fs::write(destination, bytes).map_err(|err| {
@@ -136,8 +154,8 @@ impl GitHubReleaseService {
             .await?;
 
         let latest_version = release.tag_name.trim_start_matches('v').to_string();
-        let available = compare_versions(env!("CARGO_PKG_VERSION"), &latest_version)?
-            == Ordering::Less;
+        let available =
+            compare_versions(env!("CARGO_PKG_VERSION"), &latest_version)? == Ordering::Less;
         let download_url = release
             .assets
             .iter()
@@ -170,13 +188,20 @@ impl GitHubReleaseService {
         logger.info("github", format!("Fetching {}", url));
 
         let response = self.client.get(&url).send().await.map_err(|err| {
-            InstallerError::network("github_release", "Could not reach GitHub Releases.", err.to_string())
+            InstallerError::network(
+                "github_release",
+                "Could not reach GitHub Releases.",
+                err.to_string(),
+            )
         })?;
 
         if !response.status().is_success() {
             return Err(InstallerError::network(
                 "github_release",
-                format!("Could not load the latest release for {owner}/{repo} (HTTP {}).", response.status()),
+                format!(
+                    "Could not load the latest release for {owner}/{repo} (HTTP {}).",
+                    response.status()
+                ),
                 response.status().to_string(),
             ));
         }
@@ -192,13 +217,20 @@ impl GitHubReleaseService {
 
     async fn download_text(&self, url: &str) -> Result<String, InstallerError> {
         let response = self.client.get(url).send().await.map_err(|err| {
-            InstallerError::network("manifest_download", "Could not download the manifest.", err.to_string())
+            InstallerError::network(
+                "manifest_download",
+                "Could not download the manifest.",
+                err.to_string(),
+            )
         })?;
 
         if !response.status().is_success() {
             return Err(InstallerError::network(
                 "manifest_download",
-                format!("Could not download the manifest (HTTP {}).", response.status()),
+                format!(
+                    "Could not download the manifest (HTTP {}).",
+                    response.status()
+                ),
                 response.status().to_string(),
             ));
         }

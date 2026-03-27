@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -29,6 +29,7 @@ const apiMocks = vi.hoisted(() => ({
     (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
   >(),
   openLogsFolder: vi.fn<() => Promise<boolean>>(),
+  dialogOpen: vi.fn(),
 }));
 
 vi.mock("./app/api", () => ({
@@ -54,7 +55,7 @@ vi.mock("./app/api", () => ({
 }));
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
-  open: vi.fn(),
+  open: apiMocks.dialogOpen,
 }));
 
 vi.mock("@tauri-apps/plugin-opener", () => ({
@@ -119,6 +120,7 @@ describe("App", () => {
     apiMocks.updateAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.rollbackAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.openLogsFolder.mockResolvedValue(true);
+    apiMocks.dialogOpen.mockResolvedValue(null);
   });
 
   it("renders the configured addon list", async () => {
@@ -150,5 +152,28 @@ describe("App", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Choose Folder/i })).toBeInTheDocument();
+  });
+
+  it("shows an in-app error when the dialog bridge is unavailable", async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      needsSetup: true,
+      gamePath: null,
+      addonPath: null,
+      addonRows: [],
+      pathVerification: "invalid",
+      pathMessage: "Choose an Ascension folder or executable to begin.",
+    });
+    apiMocks.dialogOpen.mockRejectedValue(
+      new TypeError("Cannot read properties of undefined (reading 'invoke')"),
+    );
+
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Choose Folder/i }));
+
+    expect(
+      await screen.findByText(/Launch the app with `npm run tauri dev`/i),
+    ).toBeInTheDocument();
   });
 });

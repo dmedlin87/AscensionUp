@@ -6,8 +6,8 @@ use tauri::State;
 use crate::{
     app_config,
     domain::{
-        AddonRow, AddonStatus, AppSnapshot, CatalogResolution, CommandEnvelope, InstalledAddonState,
-        OperationResult, PathInspection, PathVerification,
+        AddonRow, AddonStatus, AppSnapshot, CatalogResolution, CommandEnvelope,
+        InstalledAddonState, OperationResult, PathInspection, PathVerification,
     },
     error::InstallerError,
     runtime::AppRuntime,
@@ -176,7 +176,8 @@ pub async fn rollbackAddon(
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<OperationResult>, String> {
     let result = async {
-        let notice = AddonInstaller::rollback(runtime.inner(), &addon_id, allow_while_game_running)?;
+        let notice =
+            AddonInstaller::rollback(runtime.inner(), &addon_id, allow_while_game_running)?;
         let snapshot = snapshot_for_current_state(runtime.inner()).await?;
         Ok(OperationResult { snapshot, notice })
     }
@@ -193,14 +194,16 @@ pub async fn rollbackAddon(
 pub async fn checkInstallerUpdate(
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<crate::domain::InstallerUpdateStatus>, String> {
-    Ok(match runtime
-        .github_service()
-        .check_installer_update(&runtime.logger)
-        .await
-    {
-        Ok(status) => ok(status),
-        Err(error) => err(error),
-    })
+    Ok(
+        match runtime
+            .github_service()
+            .check_installer_update(&runtime.logger)
+            .await
+        {
+            Ok(status) => ok(status),
+            Err(error) => err(error),
+        },
+    )
 }
 
 #[allow(non_snake_case)]
@@ -278,17 +281,17 @@ async fn build_addon_rows(
 
     let mut seen = BTreeSet::new();
     let mut rows = Vec::new();
-    let catalog_floor_error = PackageValidator::validate_minimum_installer_version(
-        &catalog.min_installer_version,
-    )
-    .err()
-    .map(|error| error.to_string());
+    let catalog_floor_error =
+        PackageValidator::validate_minimum_installer_version(&catalog.min_installer_version)
+            .err()
+            .map(|error| error.to_string());
 
-    for addon in catalog
-        .addons
-        .iter()
-        .filter(|addon| addon.targets.iter().any(|target| target == app_config::TARGET_NAME))
-    {
+    for addon in catalog.addons.iter().filter(|addon| {
+        addon
+            .targets
+            .iter()
+            .any(|target| target == app_config::TARGET_NAME)
+    }) {
         seen.insert(addon.addon_id.clone());
         let installed = state.installed_addons.get(&addon.addon_id);
 
@@ -305,7 +308,9 @@ async fn build_addon_rows(
             .fetch_addon_release_metadata(addon, &runtime.logger)
             .await
         {
-            Ok(release) => populate_release_metadata(&mut row, addon, installed, &release, needs_setup),
+            Ok(release) => {
+                populate_release_metadata(&mut row, addon, installed, &release, needs_setup)
+            }
             Err(error) => {
                 row.status = if installed.is_some() {
                     AddonStatus::Installed
@@ -313,7 +318,9 @@ async fn build_addon_rows(
                     AddonStatus::Error
                 };
                 row.error_message = Some(error.to_string());
-                row.can_rollback = installed.and_then(|value| value.backup_path.as_ref()).is_some();
+                row.can_rollback = installed
+                    .and_then(|value| value.backup_path.as_ref())
+                    .is_some();
             }
         }
 
@@ -331,7 +338,9 @@ async fn build_addon_rows(
                 .display_name
                 .clone()
                 .unwrap_or_else(|| addon_id.clone()),
-            description: Some("Managed locally, but not present in the current catalog.".to_string()),
+            description: Some(
+                "Managed locally, but not present in the current catalog.".to_string(),
+            ),
             repo_attribution: installed.source_repo.clone(),
             repo_url: format!("https://github.com/{}", installed.source_repo),
             managed_folders: installed.folders.clone(),
@@ -379,7 +388,9 @@ fn base_row(
         disabled_reason: None,
         can_install: false,
         can_update: false,
-        can_rollback: installed.and_then(|value| value.backup_path.as_ref()).is_some(),
+        can_rollback: installed
+            .and_then(|value| value.backup_path.as_ref())
+            .is_some(),
         icon_url: addon.icon_url.clone(),
     }
 }

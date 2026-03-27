@@ -17,8 +17,13 @@ pub struct LogService {
 
 impl LogService {
     pub fn new(logs_dir: &Path) -> Result<Self, InstallerError> {
-        fs::create_dir_all(logs_dir)
-            .map_err(|err| InstallerError::io("log_setup", format!("Could not create '{}'.", logs_dir.display()), err))?;
+        fs::create_dir_all(logs_dir).map_err(|err| {
+            InstallerError::io(
+                "log_setup",
+                format!("Could not create '{}'.", logs_dir.display()),
+                err,
+            )
+        })?;
 
         let file_name = format!("session-{}.log", Utc::now().format("%Y%m%d-%H%M%S"));
         let file_path = logs_dir.join(file_name);
@@ -26,7 +31,13 @@ impl LogService {
             .create(true)
             .append(true)
             .open(&file_path)
-            .map_err(|err| InstallerError::io("log_setup", format!("Could not open '{}'.", file_path.display()), err))?;
+            .map_err(|err| {
+                InstallerError::io(
+                    "log_setup",
+                    format!("Could not open '{}'.", file_path.display()),
+                    err,
+                )
+            })?;
 
         Ok(Self {
             logs_dir: logs_dir.to_path_buf(),

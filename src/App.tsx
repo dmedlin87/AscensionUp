@@ -68,21 +68,21 @@ function App() {
     setErrorMessage(null);
     setActionMessage(null);
 
-    const selection = await open(
-      mode === "directory"
-        ? { directory: true, multiple: false }
-        : {
-            directory: false,
-            multiple: false,
-            filters: [{ name: "Executable", extensions: ["exe"] }],
-          },
-    );
-
-    if (typeof selection !== "string") {
-      return;
-    }
-
     try {
+      const selection = await open(
+        mode === "directory"
+          ? { directory: true, multiple: false }
+          : {
+              directory: false,
+              multiple: false,
+              filters: [{ name: "Executable", extensions: ["exe"] }],
+            },
+      );
+
+      if (typeof selection !== "string") {
+        return;
+      }
+
       const nextInspection = await inspectGamePath(selection);
       setInspection(nextInspection);
       setSelectedCandidatePath(
@@ -579,6 +579,13 @@ function readError(error: unknown) {
   }
 
   if (error instanceof Error) {
+    if (
+      error.message.includes("Cannot read properties of undefined") &&
+      error.message.includes("invoke")
+    ) {
+      return "Tauri APIs are unavailable in this window. Launch the app with `npm run tauri dev` to use file dialogs and native commands.";
+    }
+
     return error.message;
   }
 
