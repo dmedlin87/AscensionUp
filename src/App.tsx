@@ -1,5 +1,4 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
@@ -98,12 +97,6 @@ function App() {
       }),
     [activeFilter, addons, deferredSearch],
   );
-
-  const featuredAddon =
-    addons.find((addon) => addon.status === "updateAvailable") ??
-    addons.find((addon) => addon.status === "error") ??
-    addons[0] ??
-    null;
 
   async function loadData() {
     setLoading(true);
@@ -413,24 +406,14 @@ function App() {
                   : "Track versions, spot failures, and push updates from a single library without touching unmanaged AddOns."}
               </p>
             </div>
-            <div className="hero-sidecar">
-              <div className="hero-pill">
-                <span>Last Refresh</span>
-                <strong>{formatDateTime(snapshot?.lastCatalogRefreshAt)}</strong>
-              </div>
-              {featuredAddon ? (
-                <div className="featured-addon">
-                  <span>Focus</span>
-                  <strong>{featuredAddon.displayName}</strong>
-                  <small>{describeStatus(featuredAddon)}</small>
-                </div>
-              ) : null}
-            </div>
+            <span className="hero-refresh">
+              Last refresh: {formatDateTime(snapshot?.lastCatalogRefreshAt)}
+            </span>
           </header>
 
           <section className="command-bar">
             <div className="search-block">
-              <label htmlFor="addon-search">Search library</label>
+              <label htmlFor="addon-search" className="sr-only">Search library</label>
               <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
@@ -440,7 +423,7 @@ function App() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search addons, folders, repos, or notes..."
+                placeholder="Search addons..."
               />
             </div>
             <div className="command-actions">
@@ -513,14 +496,11 @@ function App() {
 
           <section className="list-shell">
             <div className="list-header">
-              <div>
-                <p className="eyebrow">Managed Library</p>
-                <h2>{FILTER_LABELS[activeFilter]}</h2>
-              </div>
-              <div className="list-summary">
-                <span>{filteredAddons.length} visible</span>
-                {deferredSearch ? <span>query: {searchQuery}</span> : null}
-              </div>
+              <h2>{FILTER_LABELS[activeFilter]}</h2>
+              <span className="list-count">
+                {filteredAddons.length} addon{filteredAddons.length !== 1 ? "s" : ""}
+                {deferredSearch ? ` matching "${searchQuery}"` : ""}
+              </span>
             </div>
 
             {filteredAddons.length === 0 ? (
@@ -651,34 +631,18 @@ function AddonListRow({
             <span className="state-chip">{describeStatus(addon)}</span>
           </div>
           <p>{addon.description ?? "No description provided in the catalog."}</p>
+          <p className="version-line">{statusHeadline(addon)}</p>
           <div className="identity-meta">
-            <span>{addon.repoAttribution}</span>
-            <span>Folders: {addon.managedFolders.join(", ")}</span>
-            {addon.latestPublishedAt ? <span>Published {formatDate(addon.latestPublishedAt)}</span> : null}
-          </div>
-        </div>
-      </div>
-
-      <div className="row-columns">
-        <InfoColumn label="Installed" value={addon.installedVersion ?? "Not installed"} />
-        <InfoColumn label="Latest" value={addon.latestVersion ?? "Unknown"} />
-        <InfoColumn
-          label="Source"
-          value={
             <a href={addon.repoUrl} target="_blank" rel="noreferrer">
               {addon.repoAttribution}
             </a>
-          }
-        />
-      </div>
-
-      <div className="row-status">
-        <span className="row-label">Status</span>
-        <strong>{statusHeadline(addon)}</strong>
-        <p>{statusDetail(addon)}</p>
-        {addon.releaseNotes ? <small>Release notes: {addon.releaseNotes}</small> : null}
-        {addon.disabledReason ? <small>{addon.disabledReason}</small> : null}
-        {addon.errorMessage ? <small className="error-text">{addon.errorMessage}</small> : null}
+            <span>Folders: {addon.managedFolders.join(", ")}</span>
+            {addon.latestPublishedAt ? <span>Published {formatDate(addon.latestPublishedAt)}</span> : null}
+          </div>
+          {addon.releaseNotes ? <small className="release-notes">Release notes: {addon.releaseNotes}</small> : null}
+          {addon.disabledReason ? <small>{addon.disabledReason}</small> : null}
+          {addon.errorMessage ? <small className="error-text">{addon.errorMessage}</small> : null}
+        </div>
       </div>
 
       <div className="row-actions">
@@ -711,15 +675,6 @@ function AddonListRow({
         </button>
       </div>
     </article>
-  );
-}
-
-function InfoColumn({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="info-column">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
   );
 }
 
@@ -780,25 +735,6 @@ function statusHeadline(addon: AddonRow) {
       return "Catalog or package validation needs review";
     default:
       return addon.status;
-  }
-}
-
-function statusDetail(addon: AddonRow) {
-  if (addon.errorMessage) {
-    return addon.errorMessage;
-  }
-
-  switch (addon.status) {
-    case "notInstalled":
-      return "This entry is available from the catalog and ready for first install.";
-    case "installed":
-      return "The managed folders currently match the tracked release.";
-    case "updateAvailable":
-      return "A newer package is available and can be applied directly from this manager.";
-    case "error":
-      return "The addon could not be fully resolved from the current catalog state.";
-    default:
-      return "";
   }
 }
 
