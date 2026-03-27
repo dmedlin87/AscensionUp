@@ -11,6 +11,7 @@ import {
   inspectGamePath,
   installAddon,
   openLogsFolder,
+  refreshCatalog,
   rollbackAddon,
   uninstallAddon,
   updateAddon,
@@ -200,8 +201,18 @@ function App() {
 
   async function handleRefresh() {
     setBusyAction("refresh");
-    await loadData();
-    setBusyAction(null);
+    setErrorMessage(null);
+    setActionMessage(null);
+
+    try {
+      const nextSnapshot = await refreshCatalog();
+      setSnapshot(nextSnapshot);
+      setUpdateStatus(await checkInstallerUpdate().catch(() => null));
+    } catch (error) {
+      setErrorMessage(readError(error));
+    } finally {
+      setBusyAction(null);
+    }
   }
 
   async function handleOpenLogs() {
@@ -390,13 +401,16 @@ function App() {
             <div className="hero-copy">
               <p className="eyebrow">My Addons</p>
               <h2>
-                {metrics.updates > 0
-                  ? `${metrics.updates} addon${metrics.updates === 1 ? "" : "s"} waiting for update`
-                  : "Managed addons are currently in sync"}
+                {showSetup
+                  ? "Welcome to AscensionUp"
+                  : metrics.updates > 0
+                    ? `${metrics.updates} addon${metrics.updates === 1 ? "" : "s"} waiting for update`
+                    : "Managed addons are currently in sync"}
               </h2>
               <p>
-                Track versions, spot failures, and push updates from a single library without
-                touching unmanaged AddOns.
+                {showSetup
+                  ? "Bind your game and AddOn folders in the sidebar to begin managing your library."
+                  : "Track versions, spot failures, and push updates from a single library without touching unmanaged AddOns."}
               </p>
             </div>
             <div className="hero-sidecar">
@@ -518,12 +532,21 @@ function App() {
                     <line x1="12" y1="22.08" x2="12" y2="12" />
                   </svg>
                 </div>
-                <h3>No addons match this view.</h3>
-                <p>
-                  {addons.length === 0
-                    ? "Add entries to the remote catalog and refresh the library."
-                    : "Adjust the search or filter to bring addons back into view."}
-                </p>
+                {showSetup ? (
+                  <>
+                    <h3>Setup Required</h3>
+                    <p>Please complete the setup in the sidebar to begin.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3>No addons match this view.</h3>
+                    <p>
+                      {addons.length === 0
+                        ? "Add entries to the remote catalog and refresh the library."
+                        : "Adjust the search or filter to bring addons back into view."}
+                    </p>
+                  </>
+                )}
               </article>
             ) : (
               <div className="addon-list">

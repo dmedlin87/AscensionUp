@@ -295,7 +295,7 @@ mod tests {
         let inspection = TargetDetector::inspect(&addon_dir).expect("inspection");
 
         assert_eq!(inspection.verification, PathVerification::Verified);
-        let expected = display_path(&addon_dir);
+        let expected = display_path(&super::canonicalize_lossy(&addon_dir));
         assert_eq!(
             inspection.proposed_addon_path.as_deref(),
             Some(expected.as_str())
@@ -318,7 +318,7 @@ mod tests {
         let inspection = TargetDetector::inspect(&addon_folder).expect("inspection");
 
         assert_eq!(inspection.verification, PathVerification::Verified);
-        let expected = display_path(&addon_dir);
+        let expected = display_path(&super::canonicalize_lossy(&addon_dir));
         assert_eq!(
             inspection.proposed_addon_path.as_deref(),
             Some(expected.as_str())
