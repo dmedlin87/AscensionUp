@@ -40,9 +40,9 @@ The app resolves the remote catalog and installer release repo from build-time e
 
 If they are not set, the app falls back to:
 
-- owner: `dmedl`
+- owner: `dmedlin87`
 - repo: `AscensionUp`
-- catalog URL: `https://raw.githubusercontent.com/dmedl/AscensionUp/main/catalog.json`
+- catalog URL: `https://raw.githubusercontent.com/dmedlin87/AscensionUp/main/catalog.json`
 
 Set these before cutting a real release if the production repo differs.
 

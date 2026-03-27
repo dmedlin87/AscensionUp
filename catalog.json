@@ -1,6 +1,20 @@
 {
   "schemaVersion": 1,
   "targets": ["Bronzebeard"],
-  "addons": [],
+  "addons": [
+    {
+      "addonId": "ding-timer",
+      "displayName": "DingTimer",
+      "description": "Real-time XP tracking, leveling analytics, and time-to-ding for Ascension.",
+      "owner": "dmedlin87",
+      "repo": "DingTimer",
+      "targets": ["Bronzebeard"],
+      "folders": ["DingTimer"],
+      "manifestStrategy": "release-asset",
+      "manifestAssetName": "addon-manifest.json",
+      "assetNamePattern": "DingTimer-v{version}.zip",
+      "iconUrl": null
+    }
+  ],
   "minInstallerVersion": "1.0.0"
 }

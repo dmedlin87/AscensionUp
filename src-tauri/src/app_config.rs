@@ -4,7 +4,7 @@ pub const INSTALLER_ASSET_NAME: &str = "AscensionAddonInstaller-win-x64.zip";
 
 pub fn installer_repo_owner() -> String {
     option_env!("ASCENSIONUP_REPO_OWNER")
-        .unwrap_or("dmedl")
+        .unwrap_or("dmedlin87")
         .to_string()
 }
 

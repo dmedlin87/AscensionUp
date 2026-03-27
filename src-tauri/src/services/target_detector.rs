@@ -164,11 +164,11 @@ impl TargetDetector {
     }
 }
 
-fn canonicalize_lossy(path: &Path) -> PathBuf {
+pub(crate) fn canonicalize_lossy(path: &Path) -> PathBuf {
     fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf())
 }
 
-fn display_path(path: &Path) -> String {
+pub(crate) fn display_path(path: &Path) -> String {
     let raw = path.display().to_string();
     raw.strip_prefix(r"\\?\").unwrap_or(&raw).to_string()
 }
@@ -181,7 +181,7 @@ fn candidate_path(path: PathBuf, label: &str) -> CandidateAddonPath {
     }
 }
 
-fn is_addon_directory(path: &Path) -> bool {
+pub(crate) fn is_addon_directory(path: &Path) -> bool {
     let Some(name) = path.file_name().and_then(|part| part.to_str()) else {
         return false;
     };
@@ -296,7 +296,10 @@ mod tests {
 
         assert_eq!(inspection.verification, PathVerification::Verified);
         let expected = display_path(&addon_dir);
-        assert_eq!(inspection.proposed_addon_path.as_deref(), Some(expected.as_str()));
+        assert_eq!(
+            inspection.proposed_addon_path.as_deref(),
+            Some(expected.as_str())
+        );
     }
 
     #[test]
@@ -316,6 +319,9 @@ mod tests {
 
         assert_eq!(inspection.verification, PathVerification::Verified);
         let expected = display_path(&addon_dir);
-        assert_eq!(inspection.proposed_addon_path.as_deref(), Some(expected.as_str()));
+        assert_eq!(
+            inspection.proposed_addon_path.as_deref(),
+            Some(expected.as_str())
+        );
     }
 }

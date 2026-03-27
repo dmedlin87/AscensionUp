@@ -15,7 +15,7 @@ use crate::{
         addon_installer::AddonInstaller,
         github_release_service::{compare_versions, ResolvedAddonRelease},
         package_validator::PackageValidator,
-        target_detector::TargetDetector,
+        target_detector::{canonicalize_lossy, display_path, is_addon_directory, TargetDetector},
     },
 };
 
@@ -71,10 +71,24 @@ pub async fn confirmGamePath(
         let inspection = TargetDetector::inspect(&PathBuf::from(
             game_executable_path.clone().unwrap_or_else(|| game_path.clone()),
         ))?;
+        let requested_addon_path = canonicalize_lossy(&PathBuf::from(&addon_path));
+        let requested_addon_text = display_path(&requested_addon_path);
         let chosen = inspection
             .candidate_addon_paths
             .iter()
-            .find(|candidate| candidate.path == addon_path && candidate.exists)
+            .find(|candidate| candidate.exists && candidate.path == requested_addon_text)
+            .cloned()
+            .or_else(|| {
+                if requested_addon_path.is_dir() && is_addon_directory(&requested_addon_path) {
+                    Some(crate::domain::CandidateAddonPath {
+                        path: requested_addon_text.clone(),
+                        exists: true,
+                        label: "Selected AddOn Directory".to_string(),
+                    })
+                } else {
+                    None
+                }
+            })
             .ok_or_else(|| {
                 InstallerError::validation(
                     "confirm_path",
