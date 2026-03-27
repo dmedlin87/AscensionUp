@@ -184,6 +184,27 @@ pub async fn updateAllAddons(
 
 #[allow(non_snake_case)]
 #[tauri::command]
+pub async fn uninstallAddon(
+    addon_id: String,
+    allow_while_game_running: bool,
+    runtime: State<'_, AppRuntime>,
+) -> Result<CommandEnvelope<OperationResult>, String> {
+    let result = async {
+        let notice =
+            AddonInstaller::uninstall(runtime.inner(), &addon_id, allow_while_game_running)?;
+        let snapshot = snapshot_for_current_state(runtime.inner()).await?;
+        Ok(OperationResult { snapshot, notice })
+    }
+    .await;
+
+    Ok(match result {
+        Ok(operation) => ok(operation),
+        Err(error) => err(error),
+    })
+}
+
+#[allow(non_snake_case)]
+#[tauri::command]
 pub async fn rollbackAddon(
     addon_id: String,
     allow_while_game_running: bool,
@@ -332,6 +353,7 @@ async fn build_addon_rows(
                     AddonStatus::Error
                 };
                 row.error_message = Some(error.to_string());
+                row.can_uninstall = installed.is_some() && !needs_setup;
                 row.can_rollback = installed
                     .and_then(|value| value.backup_path.as_ref())
                     .is_some();
@@ -368,6 +390,11 @@ async fn build_addon_rows(
             disabled_reason: Some("Catalog entry unavailable.".to_string()),
             can_install: false,
             can_update: false,
+            can_uninstall: state
+                .addon_path
+                .as_ref()
+                .map(PathBuf::from)
+                .is_some_and(|path| path.is_dir()),
             can_rollback: installed.backup_path.is_some(),
             icon_url: None,
         });
@@ -402,6 +429,7 @@ fn base_row(
         disabled_reason: None,
         can_install: false,
         can_update: false,
+        can_uninstall: false,
         can_rollback: installed
             .and_then(|value| value.backup_path.as_ref())
             .is_some(),
@@ -427,9 +455,11 @@ fn populate_release_metadata(
     }
 
     let can_write = row.disabled_reason.is_none() && !needs_setup;
+    let can_uninstall = installed.is_some() && !needs_setup;
 
     match installed {
         Some(installed) => {
+            row.can_uninstall = can_uninstall;
             row.can_rollback = installed.backup_path.is_some();
             match compare_versions(&installed.version, &release.manifest.version) {
                 Ok(std::cmp::Ordering::Less) => {
@@ -476,6 +506,11 @@ fn rows_from_local_state_only(state: &crate::domain::LocalState) -> Vec<AddonRow
             disabled_reason: Some("Catalog unavailable.".to_string()),
             can_install: false,
             can_update: false,
+            can_uninstall: state
+                .addon_path
+                .as_ref()
+                .map(PathBuf::from)
+                .is_some_and(|path| path.is_dir()),
             can_rollback: installed.backup_path.is_some(),
             icon_url: None,
         })

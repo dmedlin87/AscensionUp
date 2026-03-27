@@ -46,6 +46,7 @@ export interface AddonRow {
   disabledReason?: string | null;
   canInstall: boolean;
   canUpdate: boolean;
+  canUninstall: boolean;
   canRollback: boolean;
   iconUrl?: string | null;
 }

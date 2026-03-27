@@ -10,6 +10,7 @@ import {
   inspectGamePath,
   installAddon,
   openLogsFolder,
+  uninstallAddon,
   updateAddon,
   updateAllAddons,
   rollbackAddon,
@@ -435,6 +436,18 @@ function App() {
                   rollbackAddon(addon.addonId, allow),
                 )
               }
+              onUninstall={() => {
+                if (
+                  !window.confirm(
+                    `Uninstall ${addon.displayName}? This removes only the managed addon folders from your AddOns directory.`,
+                  )
+                ) {
+                  return;
+                }
+                void runAddonOperation(`uninstall-${addon.addonId}`, (allow) =>
+                  uninstallAddon(addon.addonId, allow),
+                );
+              }}
             />
           ))
         )}
@@ -448,12 +461,14 @@ function AddonCard({
   busyAction,
   onInstall,
   onUpdate,
+  onUninstall,
   onRollback,
 }: {
   addon: AddonRow;
   busyAction: string | null;
   onInstall: () => void;
   onUpdate: () => void;
+  onUninstall: () => void;
   onRollback: () => void;
 }) {
   return (
@@ -527,6 +542,14 @@ function AddonCard({
           onClick={onUpdate}
         >
           {busyAction === `update-${addon.addonId}` ? "Updating..." : "Update"}
+        </button>
+        <button
+          type="button"
+          className="ghost"
+          disabled={!addon.canUninstall || busyAction !== null}
+          onClick={onUninstall}
+        >
+          {busyAction === `uninstall-${addon.addonId}` ? "Uninstalling..." : "Uninstall"}
         </button>
         <button
           type="button"

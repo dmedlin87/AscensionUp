@@ -257,6 +257,39 @@ impl AddonInstaller {
         )))
     }
 
+    pub fn uninstall(
+        runtime: &AppRuntime,
+        addon_id: &str,
+        allow_while_game_running: bool,
+    ) -> Result<Option<String>, InstallerError> {
+        let mut state = runtime.settings_store().load()?;
+        let addon_path = configured_addon_path(&state)?;
+        ensure_game_not_blocking(runtime, &state, allow_while_game_running)?;
+
+        let installed = state
+            .installed_addons
+            .get(addon_id)
+            .cloned()
+            .ok_or_else(|| {
+                InstallerError::validation(
+                    "uninstall_missing",
+                    "This addon is not installed by the app.",
+                )
+            })?;
+
+        remove_managed_folders(&addon_path, &installed.folders)?;
+        cleanup_backup_dir(runtime, addon_id, installed.backup_path.as_deref())?;
+        state.installed_addons.remove(addon_id);
+        runtime.settings_store().save(&state)?;
+
+        Ok(Some(format!(
+            "Uninstalled {}.",
+            installed
+                .display_name
+                .unwrap_or_else(|| addon_id.to_string())
+        )))
+    }
+
     pub fn detect_game_running(state: &LocalState) -> bool {
         let Some(game_path) = state.game_path.as_ref() else {
             return false;
@@ -454,6 +487,57 @@ fn existing_managed_folders(addon_path: &Path, folders: &[String]) -> Vec<String
         .filter(|folder| addon_path.join(folder).exists())
         .cloned()
         .collect()
+}
+
+fn remove_managed_folders(addon_path: &Path, folders: &[String]) -> Result<(), InstallerError> {
+    for folder in folders {
+        let live_folder = addon_path.join(folder);
+        if !live_folder.exists() {
+            continue;
+        }
+
+        fs::remove_dir_all(&live_folder).map_err(|err| {
+            InstallerError::io(
+                "uninstall_remove",
+                "Some files could not be removed because the game may still be using them.",
+                err,
+            )
+        })?;
+    }
+
+    Ok(())
+}
+
+fn cleanup_backup_dir(
+    runtime: &AppRuntime,
+    addon_id: &str,
+    recorded_backup_path: Option<&str>,
+) -> Result<(), InstallerError> {
+    let expected_backup_root = runtime.paths.backups_dir.join(addon_id);
+    if expected_backup_root.exists() {
+        fs::remove_dir_all(&expected_backup_root).map_err(|err| {
+            InstallerError::io(
+                "uninstall_cleanup",
+                format!("Could not remove '{}'.", expected_backup_root.display()),
+                err,
+            )
+        })?;
+    }
+
+    if let Some(raw_backup_path) = recorded_backup_path {
+        let backup_root = PathBuf::from(raw_backup_path);
+        if backup_root != expected_backup_root && backup_root.exists() {
+            fs::remove_dir_all(&backup_root).map_err(|err| {
+                InstallerError::io(
+                    "uninstall_cleanup",
+                    format!("Could not remove '{}'.", backup_root.display()),
+                    err,
+                )
+            })?;
+        }
+    }
+
+    Ok(())
 }
 
 fn swap_managed_folders(

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
@@ -25,6 +25,9 @@ const apiMocks = vi.hoisted(() => ({
   updateAllAddons: vi.fn<
     (allowWhileGameRunning: boolean) => Promise<OperationResult>
   >(),
+  uninstallAddon: vi.fn<
+    (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
+  >(),
   rollbackAddon: vi.fn<
     (addonId: string, allowWhileGameRunning: boolean) => Promise<OperationResult>
   >(),
@@ -40,6 +43,7 @@ vi.mock("./app/api", () => ({
   installAddon: apiMocks.installAddon,
   updateAddon: apiMocks.updateAddon,
   updateAllAddons: apiMocks.updateAllAddons,
+  uninstallAddon: apiMocks.uninstallAddon,
   rollbackAddon: apiMocks.rollbackAddon,
   openLogsFolder: apiMocks.openLogsFolder,
   CommandError: class CommandError extends Error {
@@ -93,6 +97,7 @@ const configuredSnapshot: AppSnapshot = {
       disabledReason: null,
       canInstall: false,
       canUpdate: true,
+      canUninstall: true,
       canRollback: true,
       iconUrl: null,
     },
@@ -105,6 +110,7 @@ const configuredSnapshot: AppSnapshot = {
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     apiMocks.bootstrapApp.mockResolvedValue(configuredSnapshot);
     apiMocks.checkInstallerUpdate.mockResolvedValue({
       currentVersion: "1.0.0",
@@ -118,6 +124,7 @@ describe("App", () => {
     apiMocks.updateAllAddons.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.installAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.updateAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
+    apiMocks.uninstallAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.rollbackAddon.mockResolvedValue({ snapshot: configuredSnapshot, notice: null });
     apiMocks.openLogsFolder.mockResolvedValue(true);
     apiMocks.dialogOpen.mockResolvedValue(null);
@@ -175,5 +182,20 @@ describe("App", () => {
     expect(
       await screen.findByText(/Launch the app with `npm run tauri dev`/i),
     ).toBeInTheDocument();
+  });
+
+  it("confirms and runs uninstall for an installed addon", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Uninstall/i }));
+
+    await waitFor(() =>
+      expect(window.confirm).toHaveBeenCalledWith(
+        "Uninstall Priest Helper? This removes only the managed addon folders from your AddOns directory.",
+      ),
+    );
+    await waitFor(() =>
+      expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper", false),
+    );
   });
 });

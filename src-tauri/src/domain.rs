@@ -172,6 +172,7 @@ pub struct AddonRow {
     pub disabled_reason: Option<String>,
     pub can_install: bool,
     pub can_update: bool,
+    pub can_uninstall: bool,
     pub can_rollback: bool,
     pub icon_url: Option<String>,
 }

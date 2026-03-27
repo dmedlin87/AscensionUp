@@ -34,6 +34,7 @@ pub fn run() {
             commands::installAddon,
             commands::updateAddon,
             commands::updateAllAddons,
+            commands::uninstallAddon,
             commands::rollbackAddon,
             commands::checkInstallerUpdate,
             commands::openLogsFolder,

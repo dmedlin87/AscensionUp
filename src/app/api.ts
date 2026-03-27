@@ -86,6 +86,13 @@ export function updateAllAddons(allowWhileGameRunning: boolean) {
   });
 }
 
+export function uninstallAddon(addonId: string, allowWhileGameRunning: boolean) {
+  return invokeCommand<OperationResult>("uninstallAddon", {
+    addonId,
+    allowWhileGameRunning,
+  });
+}
+
 export function rollbackAddon(addonId: string, allowWhileGameRunning: boolean) {
   return invokeCommand<OperationResult>("rollbackAddon", {
     addonId,
