@@ -2,6 +2,13 @@
 
 Windows desktop installer/updater for privately managed Project Ascension addons.
 
+## Documentation
+
+- [ROADMAP.md](ROADMAP.md) for the current release checklist and shipped scope
+- [AGENTS.md](AGENTS.md) for repository-specific agent and contributor guidance
+- [CLAUDE.md](CLAUDE.md) for the Claude entry point that redirects to `AGENTS.md`
+- [docs/addon-release-spec.md](docs/addon-release-spec.md) for managed addon packaging rules
+
 ## Scope
 
 - Bronzebeard only
@@ -30,6 +37,8 @@ cargo test --manifest-path src-tauri/Cargo.toml
 npm run tauri dev
 ```
 
+CI runs on Windows with Node 24, `npm ci`, `npm run test:run`, `npm run build`, and `cargo test --manifest-path src-tauri/Cargo.toml`.
+
 ## Build-Time Configuration
 
 The app resolves the remote catalog and installer release repo from build-time environment variables.
@@ -55,6 +64,10 @@ Set these before cutting a real release if the production repo differs.
 ## Catalog
 
 The remote catalog lives at the repo root as `catalog.json`. The sample file in this repo starts empty on purpose so you can populate real addon entries before releasing.
+
+## Automation
+
+For a scheduled repository audit focused on frontend polish and usability, use [docs/daily-ux-ui-agent-prompt.md](docs/daily-ux-ui-agent-prompt.md).
 
 ## Addon Packaging
 
