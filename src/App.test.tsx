@@ -194,4 +194,19 @@ describe("App", () => {
       expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper"),
     );
   });
+
+  it("confirms and runs rollback for an updated addon", async () => {
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Rollback" }));
+
+    await waitFor(() =>
+      expect(window.confirm).toHaveBeenCalledWith(
+        "Rollback Priest Helper to its previously installed version?",
+      ),
+    );
+    await waitFor(() =>
+      expect(apiMocks.rollbackAddon).toHaveBeenCalledWith("priest-helper"),
+    );
+  });
 });

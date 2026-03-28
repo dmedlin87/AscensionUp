@@ -551,11 +551,19 @@ function App() {
                         updateAddon(addon.addonId),
                       )
                     }
-                    onRollback={() =>
+                    onRollback={() => {
+                      if (
+                        !window.confirm(
+                          `Rollback ${addon.displayName} to its previously installed version?`,
+                        )
+                      ) {
+                        return;
+                      }
+
                       void runAddonOperation(`rollback-${addon.addonId}`, () =>
                         rollbackAddon(addon.addonId),
-                      )
-                    }
+                      );
+                    }}
                     onUninstall={() => {
                       if (
                         !window.confirm(
@@ -652,33 +660,41 @@ function AddonListRow({
       </div>
 
       <div className="row-actions">
-        <button type="button" disabled={!addon.canInstall || busyAction !== null} onClick={onInstall}>
-          {busyInstall ? "Installing..." : addon.installedVersion ? "Reinstall" : "Install"}
-        </button>
-        <button
-          type="button"
-          className="ghost"
-          disabled={!addon.canUpdate || busyAction !== null}
-          onClick={onUpdate}
-        >
-          {busyUpdate ? "Updating..." : "Update"}
-        </button>
-        <button
-          type="button"
-          className="ghost"
-          disabled={!addon.canRollback || busyAction !== null}
-          onClick={onRollback}
-        >
-          {busyRollback ? "Rolling back..." : "Rollback"}
-        </button>
-        <button
-          type="button"
-          className="ghost danger"
-          disabled={!addon.canUninstall || busyAction !== null}
-          onClick={onUninstall}
-        >
-          {busyUninstall ? "Uninstalling..." : "Uninstall"}
-        </button>
+        {addon.canInstall || busyInstall ? (
+          <button type="button" disabled={!addon.canInstall || busyAction !== null} onClick={onInstall}>
+            {busyInstall ? "Installing..." : addon.installedVersion ? "Reinstall" : "Install"}
+          </button>
+        ) : null}
+        {addon.canUpdate || busyUpdate ? (
+          <button
+            type="button"
+            className={addon.canInstall ? "ghost" : ""}
+            disabled={!addon.canUpdate || busyAction !== null}
+            onClick={onUpdate}
+          >
+            {busyUpdate ? "Updating..." : "Update"}
+          </button>
+        ) : null}
+        {addon.canRollback || busyRollback ? (
+          <button
+            type="button"
+            className="ghost"
+            disabled={!addon.canRollback || busyAction !== null}
+            onClick={onRollback}
+          >
+            {busyRollback ? "Rolling back..." : "Rollback"}
+          </button>
+        ) : null}
+        {addon.canUninstall || busyUninstall ? (
+          <button
+            type="button"
+            className="ghost danger"
+            disabled={!addon.canUninstall || busyAction !== null}
+            onClick={onUninstall}
+          >
+            {busyUninstall ? "Uninstalling..." : "Uninstall"}
+          </button>
+        ) : null}
       </div>
     </article>
   );
@@ -732,9 +748,9 @@ function describeStatus(addon: AddonRow) {
 function statusHeadline(addon: AddonRow) {
   switch (addon.status) {
     case "notInstalled":
-      return "Not installed in this AddOns folder";
+      return `Version ${addon.latestVersion ?? "unknown"} ready to install`;
     case "installed":
-      return "Installed and aligned with the latest release";
+      return `Version ${addon.installedVersion} installed and up to date`;
     case "updateAvailable":
       return `Upgrade ${addon.installedVersion ?? "current"} to ${addon.latestVersion ?? "latest"}`;
     case "error":
