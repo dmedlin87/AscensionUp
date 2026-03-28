@@ -80,6 +80,14 @@ impl TargetDetector {
             ),
             candidate_path(
                 game_root
+                    .join("Resources")
+                    .join("Client")
+                    .join("Interface")
+                    .join("AddOns"),
+                "Resources\\Client\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
                     .join("resources")
                     .join("client")
                     .join("Interface")
@@ -248,7 +256,7 @@ mod tests {
                 .join("Resources")
                 .join("Client")
                 .join("Interface")
-                .join("Addons"),
+                .join("AddOns"),
         )
         .expect("create addons");
 
