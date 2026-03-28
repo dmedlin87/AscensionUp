@@ -80,6 +80,7 @@ mod tests {
             "https://github.com/dmedlin87/AscensionUp/releases/latest/download/AscensionAddonInstaller-win-x64.zip"
         );
     }
+    #[test]
     fn generates_default_catalog_url() {
         let url = catalog_url();
         assert_eq!(
