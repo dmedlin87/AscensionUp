@@ -638,6 +638,14 @@ function AddonListRow({
           </div>
           <p>{addon.description ?? "No description provided in the catalog."}</p>
           <p className="version-line">{statusHeadline(addon)}</p>
+          <div className="version-pills" aria-label="Addon versions">
+            <span className="version-pill">
+              Installed: <strong>{addon.installedVersion ?? "Not installed"}</strong>
+            </span>
+            <span className="version-pill">
+              Latest: <strong>{addon.latestVersion ?? "Unknown"}</strong>
+            </span>
+          </div>
           <div className="identity-meta">
             <a href={addon.repoUrl} target="_blank" rel="noreferrer">
               {addon.repoAttribution}

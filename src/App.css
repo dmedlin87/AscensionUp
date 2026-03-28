@@ -1022,6 +1022,43 @@ code { font-family: var(--font-mono); }
 .addon-row.warm .version-line { color: var(--status-warn); }
 .addon-row.bad .version-line  { color: var(--status-error); }
 
+.version-pills {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.version-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+}
+
+.version-pill strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.addon-row.good .version-pill {
+  border-color: var(--status-good-border);
+}
+
+.addon-row.warm .version-pill {
+  border-color: var(--status-warn-border);
+}
+
+.addon-row.bad .version-pill {
+  border-color: var(--status-error-border);
+}
+
 .identity-meta {
   display: flex;
   gap: var(--space-md);
