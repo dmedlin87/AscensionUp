@@ -27,6 +27,19 @@
       "manifestAssetName": "addon-manifest.json",
       "assetNamePattern": "QuestBuddy-v{version}.zip",
       "iconUrl": null
+    },
+    {
+      "addonId": "feed-me",
+      "displayName": "FeedMe",
+      "description": "Lightweight feeding automation and food selection for Ascension characters.",
+      "owner": "dmedlin87",
+      "repo": "FeedMe",
+      "targets": ["Bronzebeard"],
+      "folders": ["FeedMe"],
+      "manifestStrategy": "release-asset",
+      "manifestAssetName": "addon-manifest.json",
+      "assetNamePattern": "FeedMe-v{version}.zip",
+      "iconUrl": null
     }
   ],
   "minInstallerVersion": "1.0.0"

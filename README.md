@@ -63,7 +63,7 @@ Set these before cutting a real release if the production repo differs.
 
 ## Catalog
 
-The remote catalog lives at the repo root as `catalog.json`. This repository currently ships starter managed addon entries for `DingTimer` and `QuestBuddy`; replace or extend them to match the production addon set before release.
+The remote catalog lives at the repo root as `catalog.json`. This repository currently ships managed addon entries for `DingTimer`, `QuestBuddy`, and `FeedMe`; update the list to match the production addon set before release.
 
 ## Automation
 
