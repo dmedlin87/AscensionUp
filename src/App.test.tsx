@@ -201,4 +201,21 @@ describe("App", () => {
       expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper"),
     );
   });
+
+  it("disables the Update All button when there are no updates available", async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: "installed",
+          canUpdate: false,
+        },
+      ],
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: /Update All/i })).toBeDisabled();
+  });
 });
