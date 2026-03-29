@@ -446,7 +446,7 @@ function App() {
               ) : null}
               <button
                 type="button"
-                disabled={busyAction !== null}
+                disabled={busyAction !== null || metrics.updates === 0 || showSetup}
                 onClick={() => void runAddonOperation("update-all", () => updateAllAddons())}
               >
                 {busyAction === "update-all" ? "Updating..." : "Update All"}
