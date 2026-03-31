@@ -137,7 +137,7 @@ describe("App", () => {
     expect(screen.getByText(/Upgrade 1\.0\.0 to 1\.1\.0/i)).toBeInTheDocument();
     expect(screen.getByText(hasExactText("Installed: 1.0.0"))).toBeInTheDocument();
     expect(screen.getByText(hasExactText("Latest: 1.1.0"))).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Update All/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Update All \(1\)/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Addon Manager/i })).toBeInTheDocument();
   });
 

@@ -446,10 +446,10 @@ function App() {
               ) : null}
               <button
                 type="button"
-                disabled={busyAction !== null}
+                disabled={busyAction !== null || metrics.updates === 0}
                 onClick={() => void runAddonOperation("update-all", () => updateAllAddons())}
               >
-                {busyAction === "update-all" ? "Updating..." : "Update All"}
+                {busyAction === "update-all" ? "Updating..." : metrics.updates > 0 ? `Update All (${metrics.updates})` : "Update All"}
               </button>
             </div>
           </section>
@@ -660,33 +660,46 @@ function AddonListRow({
       </div>
 
       <div className="row-actions">
-        <button type="button" disabled={!addon.canInstall || busyAction !== null} onClick={onInstall}>
-          {busyInstall ? "Installing..." : addon.installedVersion ? "Reinstall" : "Install"}
-        </button>
-        <button
-          type="button"
-          className="ghost"
-          disabled={!addon.canUpdate || busyAction !== null}
-          onClick={onUpdate}
-        >
-          {busyUpdate ? "Updating..." : "Update"}
-        </button>
-        <button
-          type="button"
-          className="ghost"
-          disabled={!addon.canRollback || busyAction !== null}
-          onClick={onRollback}
-        >
-          {busyRollback ? "Rolling back..." : "Rollback"}
-        </button>
-        <button
-          type="button"
-          className="ghost danger"
-          disabled={!addon.canUninstall || busyAction !== null}
-          onClick={onUninstall}
-        >
-          {busyUninstall ? "Uninstalling..." : "Uninstall"}
-        </button>
+        {addon.canInstall || busyInstall ? (
+          <button
+            type="button"
+            className={addon.canUpdate || busyUpdate || addon.installedVersion ? "ghost" : ""}
+            disabled={!addon.canInstall || busyAction !== null}
+            onClick={onInstall}
+          >
+            {busyInstall ? "Installing..." : addon.installedVersion ? "Reinstall" : "Install"}
+          </button>
+        ) : null}
+        {addon.canUpdate || busyUpdate ? (
+          <button
+            type="button"
+            className=""
+            disabled={!addon.canUpdate || busyAction !== null}
+            onClick={onUpdate}
+          >
+            {busyUpdate ? "Updating..." : "Update"}
+          </button>
+        ) : null}
+        {addon.canRollback || busyRollback ? (
+          <button
+            type="button"
+            className="ghost"
+            disabled={!addon.canRollback || busyAction !== null}
+            onClick={onRollback}
+          >
+            {busyRollback ? "Rolling back..." : "Rollback"}
+          </button>
+        ) : null}
+        {addon.canUninstall || busyUninstall ? (
+          <button
+            type="button"
+            className="ghost danger"
+            disabled={!addon.canUninstall || busyAction !== null}
+            onClick={onUninstall}
+          >
+            {busyUninstall ? "Uninstalling..." : "Uninstall"}
+          </button>
+        ) : null}
       </div>
     </article>
   );
