@@ -140,7 +140,11 @@ impl TargetDetector {
             PathVerification::Verified
         };
 
-        let proposed_addon_path = if valid_candidates.len() == 1 {
+        let proposed_addon_path = if let Some(candidate) = candidate_paths.iter().find(|c| {
+            c.exists && c.label.eq_ignore_ascii_case("Resources\\Client\\Interface\\AddOns")
+        }) {
+            Some(candidate.path.clone())
+        } else if valid_candidates.len() == 1 {
             Some(valid_candidates[0].path.clone())
         } else {
             None
