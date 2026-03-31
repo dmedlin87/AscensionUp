@@ -99,6 +99,11 @@ const configuredSnapshot: AppSnapshot = {
   installerReleasePageUrl: "https://github.com/owner/repo/releases/latest",
 };
 
+function hasExactText(expected: string) {
+  return (_content: string, element: Element | null) =>
+    element?.textContent?.replace(/\s+/g, " ").trim() === expected;
+}
+
 describe("App", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -130,7 +135,9 @@ describe("App", () => {
       await screen.findByRole("heading", { name: /Priest Helper/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Upgrade 1\.0\.0 to 1\.1\.0/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Update All/i })).toBeInTheDocument();
+    expect(screen.getByText(hasExactText("Installed: 1.0.0"))).toBeInTheDocument();
+    expect(screen.getByText(hasExactText("Latest: 1.1.0"))).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Update All \(1\)/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Addon Manager/i })).toBeInTheDocument();
   });
 
@@ -154,7 +161,7 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Welcome to AscensionUp/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Setup Required/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Choose Folder/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Choose Folder/i }).length).toBeGreaterThan(0);
   });
 
   it("shows an in-app error when the dialog bridge is unavailable", async () => {
@@ -173,7 +180,8 @@ describe("App", () => {
 
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: /Choose Folder/i }));
+    const buttons = await screen.findAllByRole("button", { name: /Choose Folder/i });
+    fireEvent.click(buttons[0]);
 
     expect(
       await screen.findByText(/Launch the app with `npm run tauri dev`/i),
@@ -208,5 +216,20 @@ describe("App", () => {
     await waitFor(() =>
       expect(apiMocks.rollbackAddon).toHaveBeenCalledWith("priest-helper"),
     );
+  it("disables the Update All button when there are no updates available", async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: "installed",
+          canUpdate: false,
+        },
+      ],
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: /Update All/i })).toBeDisabled();
   });
 });

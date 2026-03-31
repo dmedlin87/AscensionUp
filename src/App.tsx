@@ -446,10 +446,10 @@ function App() {
               ) : null}
               <button
                 type="button"
-                disabled={busyAction !== null}
+                disabled={busyAction !== null || metrics.updates === 0 || showSetup}
                 onClick={() => void runAddonOperation("update-all", () => updateAllAddons())}
               >
-                {busyAction === "update-all" ? "Updating..." : "Update All"}
+                {busyAction === "update-all" ? "Updating..." : metrics.updates > 0 ? `Update All (${metrics.updates})` : "Update All"}
               </button>
             </div>
           </section>
@@ -521,7 +521,15 @@ function App() {
                 {showSetup ? (
                   <>
                     <h3>Setup Required</h3>
-                    <p>Please complete the setup in the sidebar to begin.</p>
+                    <p>Please complete the setup to begin managing your library.</p>
+                    <div className="empty-actions">
+                      <button type="button" onClick={() => void choosePath("directory")}>
+                        Choose Folder
+                      </button>
+                      <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                        Choose Executable
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -646,6 +654,14 @@ function AddonListRow({
           </div>
           <p>{addon.description ?? "No description provided in the catalog."}</p>
           <p className="version-line">{statusHeadline(addon)}</p>
+          <div className="version-pills" aria-label="Addon versions">
+            <span className="version-pill">
+              Installed: <strong>{addon.installedVersion ?? "Not installed"}</strong>
+            </span>
+            <span className="version-pill">
+              Latest: <strong>{addon.latestVersion ?? "Unknown"}</strong>
+            </span>
+          </div>
           <div className="identity-meta">
             <a href={addon.repoUrl} target="_blank" rel="noreferrer">
               {addon.repoAttribution}
@@ -661,14 +677,19 @@ function AddonListRow({
 
       <div className="row-actions">
         {addon.canInstall || busyInstall ? (
-          <button type="button" disabled={!addon.canInstall || busyAction !== null} onClick={onInstall}>
+          <button
+            type="button"
+            className={addon.canUpdate || busyUpdate || addon.installedVersion ? "ghost" : ""}
+            disabled={!addon.canInstall || busyAction !== null}
+            onClick={onInstall}
+          >
             {busyInstall ? "Installing..." : addon.installedVersion ? "Reinstall" : "Install"}
           </button>
         ) : null}
         {addon.canUpdate || busyUpdate ? (
           <button
             type="button"
-            className={addon.canInstall ? "ghost" : ""}
+            className=""
             disabled={!addon.canUpdate || busyAction !== null}
             onClick={onUpdate}
           >
