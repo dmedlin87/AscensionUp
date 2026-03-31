@@ -40,6 +40,19 @@
       "manifestAssetName": "addon-manifest.json",
       "assetNamePattern": "FeedMe-v{version}.zip",
       "iconUrl": null
+    },
+    {
+      "addonId": "alts-db",
+      "displayName": "AltsDB",
+      "description": "Account-wide alt inventory, bank, gold, and mail ledger for Ascension characters.",
+      "owner": "dmedlin87",
+      "repo": "AltsDB",
+      "targets": ["Bronzebeard"],
+      "folders": ["AltsDB"],
+      "manifestStrategy": "release-asset",
+      "manifestAssetName": "addon-manifest.json",
+      "assetNamePattern": "AltsDB-v{version}.zip",
+      "iconUrl": null
     }
   ],
   "minInstallerVersion": "1.0.0"
