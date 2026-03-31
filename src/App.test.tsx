@@ -161,7 +161,7 @@ describe("App", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Welcome to AscensionUp/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Setup Required/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Choose Folder/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /Choose Folder/i }).length).toBeGreaterThan(0);
   });
 
   it("shows an in-app error when the dialog bridge is unavailable", async () => {
@@ -180,7 +180,8 @@ describe("App", () => {
 
     render(<App />);
 
-    fireEvent.click(await screen.findByRole("button", { name: /Choose Folder/i }));
+    const buttons = await screen.findAllByRole("button", { name: /Choose Folder/i });
+    fireEvent.click(buttons[0]);
 
     expect(
       await screen.findByText(/Launch the app with `npm run tauri dev`/i),
@@ -200,5 +201,22 @@ describe("App", () => {
     await waitFor(() =>
       expect(apiMocks.uninstallAddon).toHaveBeenCalledWith("priest-helper"),
     );
+  });
+
+  it("disables the Update All button when there are no updates available", async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: "installed",
+          canUpdate: false,
+        },
+      ],
+    });
+
+    render(<App />);
+
+    expect(await screen.findByRole("button", { name: /Update All/i })).toBeDisabled();
   });
 });

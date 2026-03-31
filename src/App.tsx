@@ -446,7 +446,7 @@ function App() {
               ) : null}
               <button
                 type="button"
-                disabled={busyAction !== null || metrics.updates === 0}
+                disabled={busyAction !== null || metrics.updates === 0 || showSetup}
                 onClick={() => void runAddonOperation("update-all", () => updateAllAddons())}
               >
                 {busyAction === "update-all" ? "Updating..." : metrics.updates > 0 ? `Update All (${metrics.updates})` : "Update All"}
@@ -521,7 +521,15 @@ function App() {
                 {showSetup ? (
                   <>
                     <h3>Setup Required</h3>
-                    <p>Please complete the setup in the sidebar to begin.</p>
+                    <p>Please complete the setup to begin managing your library.</p>
+                    <div className="empty-actions">
+                      <button type="button" onClick={() => void choosePath("directory")}>
+                        Choose Folder
+                      </button>
+                      <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                        Choose Executable
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <>

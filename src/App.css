@@ -1144,6 +1144,13 @@ code { font-family: var(--font-mono); }
   margin: 0 auto;
 }
 
+.empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
 /* ═══════════════════════════════════════════════════════════
    Responsive
    ═══════════════════════════════════════════════════════════ */
