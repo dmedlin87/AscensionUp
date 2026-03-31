@@ -559,11 +559,19 @@ function App() {
                         updateAddon(addon.addonId),
                       )
                     }
-                    onRollback={() =>
+                    onRollback={() => {
+                      if (
+                        !window.confirm(
+                          `Rollback ${addon.displayName} to its previously installed version?`,
+                        )
+                      ) {
+                        return;
+                      }
+
                       void runAddonOperation(`rollback-${addon.addonId}`, () =>
                         rollbackAddon(addon.addonId),
-                      )
-                    }
+                      );
+                    }}
                     onUninstall={() => {
                       if (
                         !window.confirm(
@@ -761,9 +769,9 @@ function describeStatus(addon: AddonRow) {
 function statusHeadline(addon: AddonRow) {
   switch (addon.status) {
     case "notInstalled":
-      return "Not installed in this AddOns folder";
+      return `Version ${addon.latestVersion ?? "unknown"} ready to install`;
     case "installed":
-      return "Installed and aligned with the latest release";
+      return `Version ${addon.installedVersion} installed and up to date`;
     case "updateAvailable":
       return `Upgrade ${addon.installedVersion ?? "current"} to ${addon.latestVersion ?? "latest"}`;
     case "error":
