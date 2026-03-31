@@ -80,6 +80,14 @@ impl TargetDetector {
             ),
             candidate_path(
                 game_root
+                    .join("Resources")
+                    .join("Client")
+                    .join("Interface")
+                    .join("AddOns"),
+                "Resources\\Client\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
                     .join("resources")
                     .join("client")
                     .join("Interface")
@@ -132,7 +140,11 @@ impl TargetDetector {
             PathVerification::Verified
         };
 
-        let proposed_addon_path = if valid_candidates.len() == 1 {
+        let proposed_addon_path = if let Some(candidate) = candidate_paths.iter().find(|c| {
+            c.exists && c.label.eq_ignore_ascii_case("Resources\\Client\\Interface\\AddOns")
+        }) {
+            Some(candidate.path.clone())
+        } else if valid_candidates.len() == 1 {
             Some(valid_candidates[0].path.clone())
         } else {
             None
@@ -248,7 +260,7 @@ mod tests {
                 .join("Resources")
                 .join("Client")
                 .join("Interface")
-                .join("Addons"),
+                .join("AddOns"),
         )
         .expect("create addons");
 
