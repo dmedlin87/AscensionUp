@@ -8,7 +8,7 @@ This file is the repository-specific handoff for coding agents and human contrib
 - Frontend: React 19 + TypeScript + Vite.
 - Desktop/runtime shell: Tauri 2.
 - Backend/service layer: Rust in `src-tauri/src`.
-- Target audience and scope: Bronzebeard only, public GitHub releases only, stable channel only, one saved Ascension profile.
+- Target audience and scope: Bronzebeard and CoA, public GitHub releases only, stable channel only, one saved Ascension profile.
 
 ## Source of Truth
 
@@ -23,7 +23,7 @@ When docs disagree, prefer these files in this order:
 ## Working Rules
 
 - Keep the app scoped to the documented installer constraints in `README.md`.
-- Do not broaden target support beyond `Bronzebeard` unless the product docs and code change together.
+- Do not broaden target support beyond `Bronzebeard` and `CoA` unless the product docs and code change together.
 - Preserve the write-boundary guarantees documented in `README.md`:
   - app config/log/cache directories
   - the confirmed addon directory
