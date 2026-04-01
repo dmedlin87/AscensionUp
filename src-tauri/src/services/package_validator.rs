@@ -10,7 +10,7 @@ use sha2::{Digest, Sha256};
 use zip::ZipArchive;
 
 use crate::{
-    app_config::TARGET_NAME,
+    app_config::contains_target,
     domain::{AddonManifest, CatalogAddon},
     error::InstallerError,
 };
@@ -21,6 +21,7 @@ impl PackageValidator {
     pub fn validate_manifest(
         catalog_addon: &CatalogAddon,
         manifest: &AddonManifest,
+        selected_target: &str,
     ) -> Result<(), InstallerError> {
         if manifest.addon_id != catalog_addon.addon_id {
             return Err(InstallerError::validation(
@@ -32,11 +33,7 @@ impl PackageValidator {
             ));
         }
 
-        if !manifest
-            .target_support
-            .iter()
-            .any(|target| target == TARGET_NAME)
-        {
+        if !contains_target(&manifest.target_support, selected_target) {
             return Err(InstallerError::validation(
                 "manifest_target",
                 "This addon does not support the selected target.",
@@ -364,6 +361,7 @@ mod tests {
     use zip::{write::SimpleFileOptions, CompressionMethod, ZipWriter};
 
     use super::PackageValidator;
+    use crate::domain::{AddonManifest, CatalogAddon};
 
     fn create_zip(entries: &[(&str, &[u8])]) -> std::path::PathBuf {
         let zip_path = std::env::temp_dir().join(format!("ascensionup-{}.zip", Uuid::new_v4()));
@@ -433,5 +431,36 @@ mod tests {
         );
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn validates_coa_manifest_target_support() {
+        let catalog_addon = CatalogAddon {
+            addon_id: "my-addon".to_string(),
+            display_name: "My Addon".to_string(),
+            description: None,
+            owner: "owner".to_string(),
+            repo: "repo".to_string(),
+            targets: vec!["CoA".to_string()],
+            folders: vec!["MyAddon".to_string()],
+            manifest_strategy: "release-asset".to_string(),
+            manifest_asset_name: "addon-manifest.json".to_string(),
+            asset_name_pattern: "MyAddon-v{version}.zip".to_string(),
+            icon_url: None,
+        };
+        let manifest = AddonManifest {
+            schema_version: 1,
+            addon_id: "my-addon".to_string(),
+            display_name: "My Addon".to_string(),
+            version: "1.0.0".to_string(),
+            target_support: vec!["CoA".to_string()],
+            folders: vec!["MyAddon".to_string()],
+            asset_name: "MyAddon-v1.0.0.zip".to_string(),
+            sha256: None,
+            min_installer_version: "1.0.0".to_string(),
+            release_notes: None,
+        };
+
+        assert!(PackageValidator::validate_manifest(&catalog_addon, &manifest, "CoA").is_ok());
     }
 }

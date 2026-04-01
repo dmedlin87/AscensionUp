@@ -20,7 +20,7 @@ This roadmap is constrained to what is already documented and implemented in the
 
 ## Scope Guardrails
 
-- Bronzebeard only.
+- Bronzebeard and CoA.
 - Public GitHub releases only.
 - Stable channel only.
 - One saved Ascension profile.

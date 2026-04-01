@@ -11,7 +11,7 @@ Windows desktop installer/updater for privately managed Project Ascension addons
 
 ## Scope
 
-- Bronzebeard only
+- Bronzebeard and CoA
 - Public GitHub Releases only
 - Stable channel only
 - One saved Ascension profile
@@ -63,7 +63,7 @@ Set these before cutting a real release if the production repo differs.
 
 ## Catalog
 
-The remote catalog lives at the repo root as `catalog.json`. This repository currently ships managed addon entries for `DingTimer`, `QuestBuddy`, `FeedMe`, and `AltsDB`; update the list to match the production addon set before release.
+The remote catalog lives at the repo root as `catalog.json`. This repository currently ships managed addon entries for `DingTimer`, `QuestBuddy`, `FeedMe`, and `AltsDB`; update the list to match the production addon set before release. The catalog and addon manifests are expected to carry both `Bronzebeard` and `CoA` target support unless the release is intentionally scoped narrower.
 
 ## Automation
 

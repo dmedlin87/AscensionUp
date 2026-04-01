@@ -173,7 +173,7 @@ function App() {
       setSnapshot(nextSnapshot);
       setInspection(null);
       setEditingPath(false);
-      setActionMessage("Saved the Ascension install path.");
+      setActionMessage("Saved the current install path.");
     } catch (error) {
       setErrorMessage(readError(error));
     } finally {
@@ -318,7 +318,7 @@ function App() {
                 <h2>Bind Install</h2>
               </div>
               <p className="rail-copy">
-                Select the Ascension folder or executable, then confirm the AddOns directory this
+                Select the Ascension or CoA folder or executable, then confirm the AddOns directory this
                 manager should own.
               </p>
               <div className="rail-actions">

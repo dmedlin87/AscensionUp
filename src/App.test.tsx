@@ -149,7 +149,7 @@ describe('App', () => {
       addonPath: null,
       addonRows: [],
       pathVerification: 'invalid',
-      pathMessage: 'Choose an Ascension folder or executable to begin.',
+      pathMessage: 'Choose an Ascension or CoA folder or executable to begin.',
     });
 
     render(<App />);
@@ -172,7 +172,7 @@ describe('App', () => {
       addonPath: null,
       addonRows: [],
       pathVerification: 'invalid',
-      pathMessage: 'Choose an Ascension folder or executable to begin.',
+      pathMessage: 'Choose an Ascension or CoA folder or executable to begin.',
     });
     apiMocks.dialogOpen.mockRejectedValue(
       new TypeError(`Cannot read properties of undefined (reading 'invoke')`),

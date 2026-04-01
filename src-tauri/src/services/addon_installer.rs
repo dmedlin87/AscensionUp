@@ -8,7 +8,7 @@ use uuid::Uuid;
 use walkdir::WalkDir;
 
 use crate::{
-    app_config::TARGET_NAME,
+    app_config::contains_target,
     domain::{CatalogAddon, InstalledAddonState, LocalState},
     error::InstallerError,
     runtime::{clear_directory, AppRuntime},
@@ -38,13 +38,13 @@ impl AddonInstaller {
                 "The catalog could not be loaded, so installs and updates are unavailable.",
             )
         })?;
+        let selected_target = state.selected_target.clone();
 
         let addon = catalog
             .addons
             .iter()
             .find(|entry| {
-                entry.addon_id == addon_id
-                    && entry.targets.iter().any(|target| target == TARGET_NAME)
+                entry.addon_id == addon_id && contains_target(&entry.targets, &selected_target)
             })
             .cloned()
             .ok_or_else(|| {
@@ -63,7 +63,15 @@ impl AddonInstaller {
             .fetch_addon_release_metadata(&addon, &runtime.logger)
             .await?;
 
-        Self::install_resolved_release(runtime, &mut state, &addon, &release, &addon_path).await?;
+        Self::install_resolved_release(
+            runtime,
+            &mut state,
+            &addon,
+            &release,
+            &addon_path,
+            &selected_target,
+        )
+        .await?;
 
         runtime.settings_store().save(&state)?;
 
@@ -85,9 +93,7 @@ impl AddonInstaller {
         Ok(notice)
     }
 
-    pub async fn update_all(
-        runtime: &AppRuntime,
-    ) -> Result<Option<String>, InstallerError> {
+    pub async fn update_all(runtime: &AppRuntime) -> Result<Option<String>, InstallerError> {
         let mut state = runtime.settings_store().load()?;
         let addon_path = configured_addon_path(&state)?;
 
@@ -101,6 +107,7 @@ impl AddonInstaller {
                 "The catalog could not be loaded, so updates are unavailable.",
             )
         })?;
+        let selected_target = state.selected_target.clone();
 
         let installed_ids: Vec<String> = state.installed_addons.keys().cloned().collect();
         let mut updated = Vec::new();
@@ -111,8 +118,7 @@ impl AddonInstaller {
                 .addons
                 .iter()
                 .find(|entry| {
-                    entry.addon_id == addon_id
-                        && entry.targets.iter().any(|target| target == TARGET_NAME)
+                    entry.addon_id == addon_id && contains_target(&entry.targets, &selected_target)
                 })
                 .cloned()
             else {
@@ -140,6 +146,7 @@ impl AddonInstaller {
                                 &addon,
                                 &release,
                                 &addon_path,
+                                &selected_target,
                             )
                             .await
                             {
@@ -286,8 +293,9 @@ impl AddonInstaller {
         addon: &CatalogAddon,
         release: &ResolvedAddonRelease,
         addon_path: &Path,
+        selected_target: &str,
     ) -> Result<(), InstallerError> {
-        PackageValidator::validate_manifest(addon, &release.manifest)?;
+        PackageValidator::validate_manifest(addon, &release.manifest, selected_target)?;
         ensure_no_folder_overlap(state, &addon.addon_id, &release.manifest.folders)?;
 
         let download_dir = runtime.paths.cache_dir.join("downloads");

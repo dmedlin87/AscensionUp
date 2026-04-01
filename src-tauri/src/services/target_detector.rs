@@ -36,7 +36,7 @@ impl TargetDetector {
             if !is_exe {
                 return Err(InstallerError::validation(
                     "target_invalid",
-                    "Select an Ascension folder or executable.",
+                    "Select an Ascension or CoA folder or executable.",
                 ));
             }
 
@@ -69,7 +69,7 @@ impl TargetDetector {
         } else {
             return Err(InstallerError::validation(
                 "target_invalid",
-                "Select an Ascension folder or executable.",
+                "Select an Ascension or CoA folder or executable.",
             ));
         };
 
@@ -93,6 +93,22 @@ impl TargetDetector {
                     .join("Interface")
                     .join("AddOns"),
                 "resources\\client\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
+                    .join("Resources")
+                    .join("PTR")
+                    .join("Interface")
+                    .join("AddOns"),
+                "Resources\\PTR\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
+                    .join("resources")
+                    .join("ptr")
+                    .join("Interface")
+                    .join("AddOns"),
+                "resources\\ptr\\Interface\\AddOns",
             ),
         ];
 
@@ -126,6 +142,19 @@ impl TargetDetector {
         if game_root.join("Resources").join("Client").is_dir() {
             ascension_hints.push("The install contains Resources\\Client.".to_string());
         }
+        if game_root.join("Resources").join("PTR").is_dir()
+            || game_root.join("resources").join("ptr").is_dir()
+        {
+            ascension_hints.push("The install contains Resources\\PTR.".to_string());
+        }
+
+        let selected_text = selected_path.display().to_string().to_lowercase();
+        let prefers_coa = selected_text.contains("ptr")
+            || selected_text.contains("rexxar")
+            || root_text.contains("ptr")
+            || root_text.contains("rexxar")
+            || game_root.join("Resources").join("PTR").is_dir()
+            || game_root.join("resources").join("ptr").is_dir();
 
         let valid_candidates: Vec<&CandidateAddonPath> = candidate_paths
             .iter()
@@ -140,27 +169,53 @@ impl TargetDetector {
             PathVerification::Verified
         };
 
-        let proposed_addon_path = if let Some(candidate) = candidate_paths.iter().find(|c| {
-            c.exists && c.label.eq_ignore_ascii_case("Resources\\Client\\Interface\\AddOns")
-        }) {
-            Some(candidate.path.clone())
-        } else if valid_candidates.len() == 1 {
-            Some(valid_candidates[0].path.clone())
+        let preferred_labels: &[&str] = if prefers_coa {
+            &[
+                "Resources\\PTR\\Interface\\AddOns",
+                "resources\\ptr\\Interface\\AddOns",
+                "Resources\\Client\\Interface\\AddOns",
+                "resources\\client\\Interface\\AddOns",
+            ]
         } else {
-            None
+            &[
+                "Resources\\Client\\Interface\\AddOns",
+                "resources\\client\\Interface\\AddOns",
+                "Resources\\PTR\\Interface\\AddOns",
+                "resources\\ptr\\Interface\\AddOns",
+            ]
         };
 
+        let proposed_addon_path = preferred_labels
+            .iter()
+            .find_map(|label| {
+                candidate_paths
+                    .iter()
+                    .find(|candidate| {
+                        candidate.exists && candidate.label.eq_ignore_ascii_case(label)
+                    })
+                    .map(|candidate| candidate.path.clone())
+            })
+            .or_else(|| {
+                if valid_candidates.len() == 1 {
+                    Some(valid_candidates[0].path.clone())
+                } else {
+                    None
+                }
+            });
+
         let message = match verification {
-            PathVerification::Invalid => "Could not find a valid Ascension addon folder.".to_string(),
+            PathVerification::Invalid => {
+                "Could not find a valid Ascension or CoA addon folder.".to_string()
+            }
             PathVerification::Verified if valid_candidates.len() == 1 => {
                 "Found one valid addon directory.".to_string()
             }
             PathVerification::Verified => "Found multiple valid addon directories. Confirm which one to manage.".to_string(),
             PathVerification::Unverified if valid_candidates.len() == 1 => {
-                "Found one addon directory, but this install could not be verified as Ascension. Confirm before saving.".to_string()
+                "Found one addon directory, but this install could not be verified as Ascension or CoA. Confirm before saving.".to_string()
             }
             PathVerification::Unverified => {
-                "Found multiple addon directories, but this install could not be verified as Ascension. Confirm before saving.".to_string()
+                "Found multiple addon directories, but this install could not be verified as Ascension or CoA. Confirm before saving.".to_string()
             }
         };
 
@@ -331,6 +386,33 @@ mod tests {
 
         assert_eq!(inspection.verification, PathVerification::Verified);
         let expected = display_path(&super::canonicalize_lossy(&addon_dir));
+        assert_eq!(
+            inspection.proposed_addon_path.as_deref(),
+            Some(expected.as_str())
+        );
+    }
+
+    #[test]
+    fn accepts_coa_resource_addon_directory_as_selected_path() {
+        let temp = tempdir().expect("tempdir");
+        let game_root = temp.path().join("Ascension Launcher");
+        let addon_dir = game_root
+            .join("resources")
+            .join("ptr")
+            .join("Interface")
+            .join("AddOns");
+        std::fs::create_dir_all(&addon_dir).expect("create addons");
+
+        let inspection = TargetDetector::inspect(&game_root).expect("inspection");
+
+        assert_eq!(inspection.verification, PathVerification::Verified);
+        let expected = display_path(
+            &game_root
+                .join("Resources")
+                .join("PTR")
+                .join("Interface")
+                .join("AddOns"),
+        );
         assert_eq!(
             inspection.proposed_addon_path.as_deref(),
             Some(expected.as_str())

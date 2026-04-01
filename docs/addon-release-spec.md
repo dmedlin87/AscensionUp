@@ -44,7 +44,7 @@ MyAddon-v1.2.0.zip
   "addonId": "my-addon",
   "displayName": "My Addon",
   "version": "1.2.0",
-  "targetSupport": ["Bronzebeard"],
+  "targetSupport": ["Bronzebeard", "CoA"],
   "folders": ["MyAddon"],
   "assetName": "MyAddon-v1.2.0.zip",
   "sha256": "abc123...",
@@ -58,7 +58,7 @@ Rules:
 - `addonId` must match the installer catalog entry.
 - `folders` must exactly match the catalog entry folders.
 - `assetName` must exactly match the uploaded zip asset name.
-- `targetSupport` must include `Bronzebeard`.
+- `targetSupport` must include `Bronzebeard` or `CoA`, depending on the addon build.
 - `minInstallerVersion` must be valid semver.
 
 ## Catalog Entry
@@ -70,7 +70,7 @@ Rules:
   "description": "Utility addon for Ascension.",
   "owner": "your-github-user",
   "repo": "my-addon",
-  "targets": ["Bronzebeard"],
+  "targets": ["Bronzebeard", "CoA"],
   "folders": ["MyAddon"],
   "manifestStrategy": "release-asset",
   "manifestAssetName": "addon-manifest.json",

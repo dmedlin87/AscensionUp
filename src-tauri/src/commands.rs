@@ -92,11 +92,12 @@ pub async fn confirmGamePath(
             .ok_or_else(|| {
                 InstallerError::validation(
                     "confirm_path",
-                    "The selected addon directory is not one of the documented Ascension addon paths.",
+                    "The selected addon directory is not one of the documented Ascension or CoA addon paths.",
                 )
             })?;
 
         let mut state = runtime.settings_store().load()?;
+        let current_target = state.selected_target.clone();
         let replacing_existing = state
             .game_path
             .as_ref()
@@ -104,6 +105,14 @@ pub async fn confirmGamePath(
         state.game_path = Some(inspection.normalized_game_path.clone());
         state.game_executable_path = inspection.game_executable_path.clone().or(game_executable_path);
         state.addon_path = Some(chosen.path.clone());
+        state.selected_target = app_config::resolve_target_name(
+            Some(current_target.as_str()),
+            &[
+                Some(inspection.normalized_game_path.as_str()),
+                inspection.game_executable_path.as_deref(),
+                Some(chosen.path.as_str()),
+            ],
+        );
         if replacing_existing {
             state.installed_addons.clear();
             runtime.clear_backups()?;
@@ -283,7 +292,7 @@ fn current_path_status(
     let Some(game_path) = state.game_path.as_ref() else {
         return Ok((
             PathVerification::Invalid,
-            Some("Choose an Ascension folder or executable to begin.".to_string()),
+            Some("Choose an Ascension or CoA folder or executable to begin.".to_string()),
         ));
     };
 
@@ -312,12 +321,11 @@ async fn build_addon_rows(
             .err()
             .map(|error| error.to_string());
 
-    for addon in catalog.addons.iter().filter(|addon| {
-        addon
-            .targets
-            .iter()
-            .any(|target| target == app_config::TARGET_NAME)
-    }) {
+    for addon in catalog
+        .addons
+        .iter()
+        .filter(|addon| app_config::contains_target(&addon.targets, &state.selected_target))
+    {
         seen.insert(addon.addon_id.clone());
         let installed = state.installed_addons.get(&addon.addon_id);
 
@@ -334,9 +342,14 @@ async fn build_addon_rows(
             .fetch_addon_release_metadata(addon, &runtime.logger)
             .await
         {
-            Ok(release) => {
-                populate_release_metadata(&mut row, addon, installed, &release, needs_setup)
-            }
+            Ok(release) => populate_release_metadata(
+                &mut row,
+                addon,
+                installed,
+                &release,
+                needs_setup,
+                &state.selected_target,
+            ),
             Err(error) => {
                 row.status = if installed.is_some() {
                     AddonStatus::Installed
@@ -434,12 +447,15 @@ fn populate_release_metadata(
     installed: Option<&InstalledAddonState>,
     release: &ResolvedAddonRelease,
     needs_setup: bool,
+    selected_target: &str,
 ) {
     row.latest_version = Some(release.manifest.version.clone());
     row.latest_published_at = release.published_at.clone();
     row.release_notes = release.manifest.release_notes.clone();
 
-    if let Err(error) = PackageValidator::validate_manifest(addon, &release.manifest) {
+    if let Err(error) =
+        PackageValidator::validate_manifest(addon, &release.manifest, selected_target)
+    {
         row.status = AddonStatus::Error;
         row.error_message = Some(error.to_string());
         return;

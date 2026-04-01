@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use crate::{app_config::TARGET_NAME, domain::LocalState, error::InstallerError};
+use crate::{app_config::resolve_target_name, domain::LocalState, error::InstallerError};
 
 #[derive(Debug, Clone)]
 pub struct SettingsStore {
@@ -36,9 +36,15 @@ impl SettingsStore {
             )
         })?;
 
-        if state.selected_target.is_empty() {
-            state.selected_target = TARGET_NAME.to_string();
-        }
+        let current_target = state.selected_target.clone();
+        state.selected_target = resolve_target_name(
+            Some(current_target.as_str()),
+            &[
+                state.game_path.as_deref(),
+                state.game_executable_path.as_deref(),
+                state.addon_path.as_deref(),
+            ],
+        );
 
         Ok(state)
     }

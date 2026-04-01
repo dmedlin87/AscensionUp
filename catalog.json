@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "targets": ["Bronzebeard"],
+  "targets": ["Bronzebeard", "CoA"],
   "addons": [
     {
       "addonId": "ding-timer",
@@ -8,7 +8,7 @@
       "description": "Real-time XP tracking, leveling analytics, and time-to-ding for Ascension.",
       "owner": "dmedlin87",
       "repo": "DingTimer",
-      "targets": ["Bronzebeard"],
+      "targets": ["Bronzebeard", "CoA"],
       "folders": ["DingTimer"],
       "manifestStrategy": "release-asset",
       "manifestAssetName": "addon-manifest.json",
@@ -21,7 +21,7 @@
       "description": "Lightweight party quest progress visibility for duos and small parties.",
       "owner": "dmedlin87",
       "repo": "QuestBuddy",
-      "targets": ["Bronzebeard"],
+      "targets": ["Bronzebeard", "CoA"],
       "folders": ["QuestBuddy"],
       "manifestStrategy": "release-asset",
       "manifestAssetName": "addon-manifest.json",
@@ -34,7 +34,7 @@
       "description": "Lightweight feeding automation and food selection for Ascension characters.",
       "owner": "dmedlin87",
       "repo": "FeedMe",
-      "targets": ["Bronzebeard"],
+      "targets": ["Bronzebeard", "CoA"],
       "folders": ["FeedMe"],
       "manifestStrategy": "release-asset",
       "manifestAssetName": "addon-manifest.json",
@@ -47,7 +47,7 @@
       "description": "Account-wide alt inventory, bank, gold, and mail ledger for Ascension characters.",
       "owner": "dmedlin87",
       "repo": "AltsDB",
-      "targets": ["Bronzebeard"],
+      "targets": ["Bronzebeard", "CoA"],
       "folders": ["AltsDB"],
       "manifestStrategy": "release-asset",
       "manifestAssetName": "addon-manifest.json",

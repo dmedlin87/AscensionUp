@@ -3,7 +3,7 @@ use std::{fs, path::PathBuf};
 use reqwest::Client;
 
 use crate::{
-    app_config::{MANIFEST_ASSET_NAME, TARGET_NAME},
+    app_config::{contains_target, MANIFEST_ASSET_NAME},
     domain::{Catalog, CatalogResolution, CatalogStatus, LocalState},
     error::InstallerError,
     services::{log_service::LogService, package_validator::PackageValidator},
@@ -29,7 +29,12 @@ impl CatalogService {
         logger: &LogService,
         state: &mut LocalState,
     ) -> CatalogResolution {
-        match self.fetch_remote_catalog(client, logger).await {
+        let selected_target = state.selected_target.clone();
+
+        match self
+            .fetch_remote_catalog(client, logger, &selected_target)
+            .await
+        {
             Ok(catalog) => {
                 state.last_catalog_refresh_at = Some(now_iso());
                 state.cached_catalog_version = Some(catalog.schema_version.to_string());
@@ -42,7 +47,7 @@ impl CatalogService {
                     message: None,
                 }
             }
-            Err(remote_error) => match self.load_cached_catalog() {
+            Err(remote_error) => match self.load_cached_catalog(&selected_target) {
                 Ok(catalog) => {
                     logger.warn(
                         "catalog",
@@ -85,6 +90,7 @@ impl CatalogService {
         &self,
         client: &Client,
         logger: &LogService,
+        selected_target: &str,
     ) -> Result<Catalog, InstallerError> {
         logger.info("catalog", format!("Fetching {}", self.catalog_url));
         let response = client.get(&self.catalog_url).send().await.map_err(|err| {
@@ -122,12 +128,12 @@ impl CatalogService {
             )
         })?;
 
-        Self::validate_catalog(&catalog)?;
+        Self::validate_catalog(&catalog, selected_target)?;
 
         Ok(catalog)
     }
 
-    fn load_cached_catalog(&self) -> Result<Catalog, InstallerError> {
+    fn load_cached_catalog(&self, selected_target: &str) -> Result<Catalog, InstallerError> {
         let raw = fs::read_to_string(&self.cache_file).map_err(|err| {
             InstallerError::io(
                 "catalog_cache",
@@ -144,7 +150,7 @@ impl CatalogService {
             )
         })?;
 
-        Self::validate_catalog(&catalog)?;
+        Self::validate_catalog(&catalog, selected_target)?;
 
         Ok(catalog)
     }
@@ -177,7 +183,10 @@ impl CatalogService {
         })
     }
 
-    pub fn validate_catalog(catalog: &Catalog) -> Result<(), InstallerError> {
+    pub fn validate_catalog(
+        catalog: &Catalog,
+        selected_target: &str,
+    ) -> Result<(), InstallerError> {
         if catalog.schema_version == 0 {
             return Err(InstallerError::validation(
                 "catalog_schema",
@@ -185,10 +194,10 @@ impl CatalogService {
             ));
         }
 
-        if !catalog.targets.iter().any(|target| target == TARGET_NAME) {
+        if !contains_target(&catalog.targets, selected_target) {
             return Err(InstallerError::validation(
                 "catalog_target",
-                "The catalog does not support Bronzebeard.",
+                format!("The catalog does not support the selected target ({selected_target})."),
             ));
         }
 
@@ -218,7 +227,7 @@ impl CatalogService {
                 ));
             }
 
-            if addon.targets.iter().any(|target| target == TARGET_NAME) {
+            if contains_target(&addon.targets, selected_target) {
                 PackageValidator::validate_folder_names(&addon.folders)?;
             }
         }
@@ -242,7 +251,7 @@ mod tests {
     fn validates_bronzebeard_catalog() {
         let catalog = Catalog {
             schema_version: 1,
-            targets: vec!["Bronzebeard".to_string()],
+            targets: vec!["Bronzebeard".to_string(), "CoA".to_string()],
             addons: vec![CatalogAddon {
                 addon_id: "my-addon".to_string(),
                 display_name: "My Addon".to_string(),
@@ -259,6 +268,30 @@ mod tests {
             min_installer_version: "1.0.0".to_string(),
         };
 
-        assert!(CatalogService::validate_catalog(&catalog).is_ok());
+        assert!(CatalogService::validate_catalog(&catalog, "Bronzebeard").is_ok());
+    }
+
+    #[test]
+    fn validates_coa_catalog() {
+        let catalog = Catalog {
+            schema_version: 1,
+            targets: vec!["Bronzebeard".to_string(), "CoA".to_string()],
+            addons: vec![CatalogAddon {
+                addon_id: "my-addon".to_string(),
+                display_name: "My Addon".to_string(),
+                description: None,
+                owner: "owner".to_string(),
+                repo: "repo".to_string(),
+                targets: vec!["CoA".to_string()],
+                folders: vec!["MyAddon".to_string()],
+                manifest_strategy: "release-asset".to_string(),
+                manifest_asset_name: "addon-manifest.json".to_string(),
+                asset_name_pattern: "MyAddon-v{version}.zip".to_string(),
+                icon_url: None,
+            }],
+            min_installer_version: "1.0.0".to_string(),
+        };
+
+        assert!(CatalogService::validate_catalog(&catalog, "CoA").is_ok());
     }
 }
