@@ -65,6 +65,7 @@ pub async fn confirmGamePath(
     game_path: String,
     addon_path: String,
     game_executable_path: Option<String>,
+    selected_target: Option<String>,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<AppSnapshot>, String> {
     let result = async {
@@ -106,7 +107,7 @@ pub async fn confirmGamePath(
         state.game_executable_path = inspection.game_executable_path.clone().or(game_executable_path);
         state.addon_path = Some(chosen.path.clone());
         state.selected_target = app_config::resolve_target_name(
-            Some(current_target.as_str()),
+            selected_target.as_deref().or(Some(current_target.as_str())),
             &[
                 Some(inspection.normalized_game_path.as_str()),
                 inspection.game_executable_path.as_deref(),

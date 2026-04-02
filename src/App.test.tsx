@@ -188,6 +188,56 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('saves CoA when the target selector is changed during setup', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      needsSetup: true,
+      gamePath: null,
+      addonPath: null,
+      addonRows: [],
+      pathVerification: 'invalid',
+      pathMessage: 'Choose an Ascension or CoA folder or executable to begin.',
+    });
+    apiMocks.dialogOpen.mockResolvedValue('C:\\Games\\Ascension PTR');
+    apiMocks.inspectGamePath.mockResolvedValue({
+      normalizedGamePath: 'C:\\Games\\Ascension PTR',
+      gameExecutablePath: null,
+      verification: 'verified',
+      candidateAddonPaths: [
+        {
+          path: 'C:\\Games\\Ascension PTR\\Resources\\Client\\Interface\\AddOns',
+          exists: true,
+          label: 'Resources\\Client\\Interface\\AddOns',
+        },
+        {
+          path: 'C:\\Games\\Ascension PTR\\Resources\\PTR\\Interface\\AddOns',
+          exists: true,
+          label: 'Resources\\PTR\\Interface\\AddOns',
+        },
+      ],
+      proposedAddonPath: 'C:\\Games\\Ascension PTR\\Resources\\Client\\Interface\\AddOns',
+      message: 'Found one valid addon directory.',
+      ascensionHints: [],
+    });
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: /Bind Install/i });
+    fireEvent.click(screen.getAllByRole('button', { name: /Choose Folder/i })[0]);
+    await screen.findByRole('button', { name: /Confirm Path/i });
+    fireEvent.click(screen.getByRole('radio', { name: /PTR \/ CoA/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Confirm Path/i }));
+
+    await waitFor(() =>
+      expect(apiMocks.confirmGamePath).toHaveBeenCalledWith(
+        'C:\\Games\\Ascension PTR',
+        'C:\\Games\\Ascension PTR\\Resources\\PTR\\Interface\\AddOns',
+        null,
+        'CoA',
+      ),
+    );
+  });
+
   it('confirms and runs uninstall for an installed addon', async () => {
     render(<App />);
 

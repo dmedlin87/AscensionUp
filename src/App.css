@@ -561,6 +561,52 @@ code { font-family: var(--font-mono); }
   border: 1px solid var(--border-subtle);
 }
 
+.target-select {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+.target-option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease;
+}
+
+.target-option:hover {
+  border-color: var(--border-medium);
+}
+
+.target-option.selected {
+  background: var(--accent-subtle);
+  border-color: rgba(245, 166, 35, 0.25);
+}
+
+.target-option input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--accent);
+}
+
+.target-option strong {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 1px;
+}
+
+.target-option span {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  line-height: 1.35;
+}
+
 .setup-result h3 {
   font-size: 0.85rem;
   font-weight: 600;

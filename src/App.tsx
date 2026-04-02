@@ -26,6 +26,20 @@ import type {
 import "./App.css";
 
 type LibraryFilter = "all" | "updates" | "installed" | "issues";
+type GameTarget = "Bronzebeard" | "CoA";
+
+const TARGET_OPTIONS: Array<{ value: GameTarget; label: string; description: string }> = [
+  {
+    value: "Bronzebeard",
+    label: "Live / Bronzebeard",
+    description: "Use the live client AddOns folder.",
+  },
+  {
+    value: "CoA",
+    label: "PTR / CoA",
+    description: "Use the PTR AddOns folder for Conquest of Azeroth.",
+  },
+];
 
 const FILTER_LABELS: Record<LibraryFilter, string> = {
   all: "All Addons",
@@ -40,6 +54,7 @@ function App() {
   const [inspection, setInspection] = useState<PathInspection | null>(null);
   const [selectedCandidatePath, setSelectedCandidatePath] = useState("");
   const [editingPath, setEditingPath] = useState(false);
+  const [selectedTargetChoice, setSelectedTargetChoice] = useState<GameTarget>("Bronzebeard");
   const [loading, setLoading] = useState(true);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -54,6 +69,25 @@ function App() {
   const showSetup = editingPath || !snapshot || snapshot.needsSetup;
   const addons = snapshot?.addonRows ?? [];
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
+
+  useEffect(() => {
+    if (snapshot?.selectedTarget === "Bronzebeard" || snapshot?.selectedTarget === "CoA") {
+      setSelectedTargetChoice(snapshot.selectedTarget);
+    }
+  }, [snapshot?.selectedTarget]);
+
+  useEffect(() => {
+    if (!inspection) {
+      return;
+    }
+
+    const preferredPath = getPreferredAddonPath(inspection, selectedTargetChoice);
+    if (!preferredPath) {
+      return;
+    }
+
+    setSelectedCandidatePath(preferredPath);
+  }, [inspection, selectedTargetChoice]);
 
   const metrics = useMemo(() => {
     let updates = 0;
@@ -115,6 +149,9 @@ function App() {
       if (!nextSnapshot.needsSetup) {
         setInspection(null);
         setEditingPath(false);
+        setSelectedTargetChoice(
+          nextSnapshot.selectedTarget === "CoA" ? "CoA" : "Bronzebeard",
+        );
       }
     } catch (error) {
       setErrorMessage(readError(error));
@@ -144,11 +181,6 @@ function App() {
 
       const nextInspection = await inspectGamePath(selection);
       setInspection(nextInspection);
-      setSelectedCandidatePath(
-        nextInspection.proposedAddonPath ??
-          nextInspection.candidateAddonPaths.find((candidate) => candidate.exists)?.path ??
-          "",
-      );
       setEditingPath(true);
     } catch (error) {
       setErrorMessage(readError(error));
@@ -156,7 +188,13 @@ function App() {
   }
 
   async function confirmSelection() {
-    if (!inspection || !selectedCandidatePath) {
+    if (!inspection) {
+      setErrorMessage("Inspect a game folder before confirming the install path.");
+      return;
+    }
+
+    const addonPath = getPreferredAddonPath(inspection, selectedTargetChoice);
+    if (!addonPath) {
       setErrorMessage("Select one of the detected addon directories before confirming.");
       return;
     }
@@ -167,8 +205,9 @@ function App() {
     try {
       const nextSnapshot = await confirmGamePath(
         inspection.normalizedGamePath,
-        selectedCandidatePath,
+        addonPath,
         inspection.gameExecutablePath ?? null,
+        selectedTargetChoice,
       );
       setSnapshot(nextSnapshot);
       setInspection(null);
@@ -318,9 +357,29 @@ function App() {
                 <h2>Bind Install</h2>
               </div>
               <p className="rail-copy">
-                Select the Ascension or CoA folder or executable, then confirm the AddOns directory this
-                manager should own.
+                Select the live or PTR profile, then choose the game folder or executable. The AddOns
+                path will follow the selected profile automatically.
               </p>
+              <div className="target-select" role="radiogroup" aria-label="Game target">
+                {TARGET_OPTIONS.map((target) => (
+                  <label
+                    key={target.value}
+                    className={`target-option ${selectedTargetChoice === target.value ? "selected" : ""}`}
+                  >
+                    <input
+                      type="radio"
+                      name="game-target"
+                      value={target.value}
+                      checked={selectedTargetChoice === target.value}
+                      onChange={() => setSelectedTargetChoice(target.value)}
+                    />
+                    <div>
+                      <strong>{target.label}</strong>
+                      <span>{target.description}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
               <div className="rail-actions">
                 <button type="button" onClick={() => void choosePath("directory")}>
                   Choose Folder
@@ -387,8 +446,8 @@ function App() {
                 </div>
               ) : (
                 <p className="rail-copy muted">
-                  No path inspected yet. The manager will auto-select when only one valid AddOns
-                  location is detected.
+                  No path inspected yet. The manager will auto-select the matching AddOns location
+                  once a game folder is inspected.
                 </p>
               )}
             </section>
@@ -723,6 +782,38 @@ function AddonListRow({
 
 function countForFilter(addons: AddonRow[], filter: LibraryFilter) {
   return addons.filter((addon) => matchesFilter(addon, filter)).length;
+}
+
+function getPreferredAddonPath(
+  inspection: PathInspection,
+  target: GameTarget,
+) {
+  const preferredPatterns = target === "CoA"
+    ? [
+        /resources\/ptr\/interface\/addons/i,
+        /(?:^|\/)ptr\/interface\/addons/i,
+      ]
+    : [
+        /resources\/client\/interface\/addons/i,
+        /(?:^|\/)client\/interface\/addons/i,
+      ];
+
+  for (const pattern of preferredPatterns) {
+    const match = inspection.candidateAddonPaths.find((candidate) => {
+      const haystack = `${candidate.label} ${candidate.path}`.replace(/\\/g, "/");
+      return candidate.exists && pattern.test(haystack);
+    });
+
+    if (match) {
+      return match.path;
+    }
+  }
+
+  return (
+    inspection.proposedAddonPath ??
+    inspection.candidateAddonPaths.find((candidate) => candidate.exists)?.path ??
+    null
+  );
 }
 
 function matchesFilter(addon: AddonRow, filter: LibraryFilter) {
