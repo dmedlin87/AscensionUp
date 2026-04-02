@@ -20,7 +20,7 @@ pub fn resolve_target_name(selected_target: Option<&str>, path_hints: &[Option<&
     if path_hints
         .iter()
         .flatten()
-        .any(|hint| path_looks_like_coa(hint))
+        .any(|hint| infer_target_name_from_path_hint(hint).is_some_and(|target| target == COA_TARGET_NAME))
     {
         COA_TARGET_NAME.to_string()
     } else if let Some(target) = selected_target.filter(|target| is_supported_target(target)) {
@@ -29,6 +29,16 @@ pub fn resolve_target_name(selected_target: Option<&str>, path_hints: &[Option<&
             .to_string()
     } else {
         TARGET_NAME.to_string()
+    }
+}
+
+pub fn infer_target_name_from_path_hint(path: &str) -> Option<&'static str> {
+    if path_looks_like_coa(path) {
+        Some(COA_TARGET_NAME)
+    } else if path_looks_like_live(path) {
+        Some(TARGET_NAME)
+    } else {
+        None
     }
 }
 
@@ -53,6 +63,17 @@ fn path_looks_like_coa(path: &str) -> bool {
         || normalized.contains("\\rexxar\\")
         || normalized.ends_with("\\rexxar")
         || normalized.contains("conquest of azeroth")
+}
+
+fn path_looks_like_live(path: &str) -> bool {
+    let normalized = path.replace('/', "\\").to_ascii_lowercase();
+    if path_looks_like_coa(&normalized) {
+        return false;
+    }
+
+    normalized.contains("\\resources\\client\\")
+        || normalized.ends_with("\\interface\\addons")
+        || normalized.contains("\\interface\\addons\\")
 }
 
 pub fn installer_repo_owner() -> String {

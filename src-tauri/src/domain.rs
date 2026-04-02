@@ -24,11 +24,31 @@ pub struct ErrorPayload {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct TargetPathState {
+    pub game_path: Option<String>,
+    pub game_executable_path: Option<String>,
+    pub addon_path: Option<String>,
+}
+
+impl Default for TargetPathState {
+    fn default() -> Self {
+        Self {
+            game_path: None,
+            game_executable_path: None,
+            addon_path: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct LocalState {
     pub selected_target: String,
     pub game_path: Option<String>,
     pub game_executable_path: Option<String>,
     pub addon_path: Option<String>,
+    #[serde(default)]
+    pub target_profiles: BTreeMap<String, TargetPathState>,
     #[serde(default)]
     pub installed_addons: BTreeMap<String, InstalledAddonState>,
     pub last_catalog_refresh_at: Option<String>,
@@ -42,10 +62,36 @@ impl Default for LocalState {
             game_path: None,
             game_executable_path: None,
             addon_path: None,
+            target_profiles: BTreeMap::new(),
             installed_addons: BTreeMap::new(),
             last_catalog_refresh_at: None,
             cached_catalog_version: None,
         }
+    }
+}
+
+impl LocalState {
+    pub fn activate_selected_target_profile(&mut self) {
+        if let Some(profile) = self.target_profiles.get(&self.selected_target).cloned() {
+            self.game_path = profile.game_path;
+            self.game_executable_path = profile.game_executable_path;
+            self.addon_path = profile.addon_path;
+        }
+    }
+
+    pub fn remember_selected_target_profile(&mut self) {
+        self.target_profiles.insert(
+            self.selected_target.clone(),
+            TargetPathState {
+                game_path: self.game_path.clone(),
+                game_executable_path: self.game_executable_path.clone(),
+                addon_path: self.addon_path.clone(),
+            },
+        );
+    }
+
+    pub fn remember_target_profile(&mut self, target: &str, profile: TargetPathState) {
+        self.target_profiles.insert(target.to_string(), profile);
     }
 }
 

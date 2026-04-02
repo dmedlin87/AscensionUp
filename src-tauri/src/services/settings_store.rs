@@ -45,6 +45,7 @@ impl SettingsStore {
                 state.addon_path.as_deref(),
             ],
         );
+        state.activate_selected_target_profile();
 
         Ok(state)
     }
@@ -60,7 +61,10 @@ impl SettingsStore {
             })?;
         }
 
-        let serialized = serde_json::to_string_pretty(state).map_err(|err| {
+        let mut state_to_save = state.clone();
+        state_to_save.remember_selected_target_profile();
+
+        let serialized = serde_json::to_string_pretty(&state_to_save).map_err(|err| {
             InstallerError::validation_with_details(
                 "state_serialize",
                 "Could not serialize local state.",
@@ -69,6 +73,61 @@ impl SettingsStore {
         })?;
 
         atomic_write(&self.state_file, serialized.as_bytes())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
+    use super::SettingsStore;
+    use crate::domain::{LocalState, TargetPathState};
+
+    #[test]
+    fn load_rehydrates_the_selected_target_profile() {
+        let temp = tempdir().expect("tempdir");
+        let state_file = temp.path().join("state.json");
+
+        let mut state = LocalState::default();
+        state.selected_target = "CoA".to_string();
+        state.target_profiles.insert(
+            "Bronzebeard".to_string(),
+            TargetPathState {
+                game_path: Some(r"C:\Games\Ascension".to_string()),
+                game_executable_path: Some(r"C:\Games\Ascension\Ascension.exe".to_string()),
+                addon_path: Some(r"C:\Games\Ascension\Interface\AddOns".to_string()),
+            },
+        );
+        state.target_profiles.insert(
+            "CoA".to_string(),
+            TargetPathState {
+                game_path: Some(r"C:\Games\Ascension PTR".to_string()),
+                game_executable_path: Some(r"C:\Games\Ascension PTR\Ascension.exe".to_string()),
+                addon_path: Some(r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns".to_string()),
+            },
+        );
+
+        fs::write(
+            &state_file,
+            serde_json::to_string_pretty(&state).expect("serialize"),
+        )
+        .expect("write state");
+
+        let store = SettingsStore::new(state_file);
+        let loaded = store.load().expect("load");
+
+        assert_eq!(loaded.selected_target, "CoA");
+        assert_eq!(loaded.game_path.as_deref(), Some(r"C:\Games\Ascension PTR"));
+        assert_eq!(
+            loaded.addon_path.as_deref(),
+            Some(r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns")
+        );
+        assert_eq!(
+            loaded.game_executable_path.as_deref(),
+            Some(r"C:\Games\Ascension PTR\Ascension.exe")
+        );
     }
 }
 
