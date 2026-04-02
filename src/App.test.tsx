@@ -141,6 +141,20 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /Addon Manager/i })).toBeInTheDocument();
   });
 
+  it('shows the unavailable message when the catalog cannot be reached', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [],
+      catalogStatus: 'unavailable',
+    });
+
+    render(<App />);
+
+    expect(
+      await screen.findByText('The remote catalog could not be reached. Check your connection or the catalog URL.')
+    ).toBeInTheDocument();
+  });
+
   it('shows setup guidance when the game path is missing', async () => {
     apiMocks.bootstrapApp.mockResolvedValue({
       ...configuredSnapshot,
