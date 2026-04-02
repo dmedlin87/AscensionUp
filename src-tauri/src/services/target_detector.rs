@@ -104,11 +104,27 @@ impl TargetDetector {
             ),
             candidate_path(
                 game_root
+                    .join("Resources")
+                    .join("ascension_ptr")
+                    .join("Interface")
+                    .join("AddOns"),
+                "Resources\\ascension_ptr\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
                     .join("resources")
                     .join("ptr")
                     .join("Interface")
                     .join("AddOns"),
                 "resources\\ptr\\Interface\\AddOns",
+            ),
+            candidate_path(
+                game_root
+                    .join("resources")
+                    .join("ascension_ptr")
+                    .join("Interface")
+                    .join("AddOns"),
+                "resources\\ascension_ptr\\Interface\\AddOns",
             ),
         ];
 
@@ -143,18 +159,24 @@ impl TargetDetector {
             ascension_hints.push("The install contains Resources\\Client.".to_string());
         }
         if game_root.join("Resources").join("PTR").is_dir()
+            || game_root.join("Resources").join("ascension_ptr").is_dir()
             || game_root.join("resources").join("ptr").is_dir()
+            || game_root.join("resources").join("ascension_ptr").is_dir()
         {
             ascension_hints.push("The install contains Resources\\PTR.".to_string());
         }
 
         let selected_text = selected_path.display().to_string().to_lowercase();
         let prefers_coa = selected_text.contains("ptr")
+            || selected_text.contains("ascension_ptr")
             || selected_text.contains("rexxar")
             || root_text.contains("ptr")
+            || root_text.contains("ascension_ptr")
             || root_text.contains("rexxar")
             || game_root.join("Resources").join("PTR").is_dir()
-            || game_root.join("resources").join("ptr").is_dir();
+            || game_root.join("Resources").join("ascension_ptr").is_dir()
+            || game_root.join("resources").join("ptr").is_dir()
+            || game_root.join("resources").join("ascension_ptr").is_dir();
 
         let valid_candidates: Vec<&CandidateAddonPath> = candidate_paths
             .iter()
@@ -172,7 +194,9 @@ impl TargetDetector {
         let preferred_labels: &[&str] = if prefers_coa {
             &[
                 "Resources\\PTR\\Interface\\AddOns",
+                "Resources\\ascension_ptr\\Interface\\AddOns",
                 "resources\\ptr\\Interface\\AddOns",
+                "resources\\ascension_ptr\\Interface\\AddOns",
                 "Resources\\Client\\Interface\\AddOns",
                 "resources\\client\\Interface\\AddOns",
             ]
@@ -181,7 +205,9 @@ impl TargetDetector {
                 "Resources\\Client\\Interface\\AddOns",
                 "resources\\client\\Interface\\AddOns",
                 "Resources\\PTR\\Interface\\AddOns",
+                "Resources\\ascension_ptr\\Interface\\AddOns",
                 "resources\\ptr\\Interface\\AddOns",
+                "resources\\ascension_ptr\\Interface\\AddOns",
             ]
         };
 
@@ -398,7 +424,7 @@ mod tests {
         let game_root = temp.path().join("Ascension Launcher");
         let addon_dir = game_root
             .join("resources")
-            .join("ptr")
+            .join("ascension_ptr")
             .join("Interface")
             .join("AddOns");
         std::fs::create_dir_all(&addon_dir).expect("create addons");
@@ -409,7 +435,7 @@ mod tests {
         let expected = display_path(
             &game_root
                 .join("Resources")
-                .join("PTR")
+                .join("ascension_ptr")
                 .join("Interface")
                 .join("AddOns"),
         );

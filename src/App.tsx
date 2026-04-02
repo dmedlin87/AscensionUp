@@ -791,7 +791,9 @@ function getPreferredAddonPath(
   const preferredPatterns = target === "CoA"
     ? [
         /resources\/ptr\/interface\/addons/i,
+        /resources\/ascension_ptr\/interface\/addons/i,
         /(?:^|\/)ptr\/interface\/addons/i,
+        /(?:^|\/)ascension_ptr\/interface\/addons/i,
       ]
     : [
         /resources\/client\/interface\/addons/i,

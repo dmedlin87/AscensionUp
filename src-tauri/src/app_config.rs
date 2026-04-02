@@ -45,6 +45,7 @@ fn canonical_target_name(target: &str) -> Option<&'static str> {
 fn path_looks_like_coa(path: &str) -> bool {
     let normalized = path.replace('/', "\\").to_ascii_lowercase();
     normalized.contains("ascension ptr")
+        || normalized.contains("ascension_ptr")
         || normalized.contains("\\ptr\\")
         || normalized.ends_with("\\ptr")
         || normalized.contains("\\coa\\")
@@ -146,6 +147,16 @@ mod tests {
         let target = resolve_target_name(
             Some(TARGET_NAME),
             &[Some(r"C:\Program Files\Ascension PTR"), None],
+        );
+
+        assert_eq!(target, COA_TARGET_NAME);
+    }
+
+    #[test]
+    fn resolves_coa_target_from_ascension_ptr_path() {
+        let target = resolve_target_name(
+            Some(TARGET_NAME),
+            &[Some(r"C:\Program Files\Ascension Launcher\resources\ascension_ptr"), None],
         );
 
         assert_eq!(target, COA_TARGET_NAME);

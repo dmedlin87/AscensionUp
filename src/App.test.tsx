@@ -210,9 +210,9 @@ describe('App', () => {
           label: 'Resources\\Client\\Interface\\AddOns',
         },
         {
-          path: 'C:\\Games\\Ascension PTR\\Resources\\PTR\\Interface\\AddOns',
+          path: 'C:\\Games\\Ascension PTR\\Resources\\ascension_ptr\\Interface\\AddOns',
           exists: true,
-          label: 'Resources\\PTR\\Interface\\AddOns',
+          label: 'Resources\\ascension_ptr\\Interface\\AddOns',
         },
       ],
       proposedAddonPath: 'C:\\Games\\Ascension PTR\\Resources\\Client\\Interface\\AddOns',
@@ -231,7 +231,7 @@ describe('App', () => {
     await waitFor(() =>
       expect(apiMocks.confirmGamePath).toHaveBeenCalledWith(
         'C:\\Games\\Ascension PTR',
-        'C:\\Games\\Ascension PTR\\Resources\\PTR\\Interface\\AddOns',
+        'C:\\Games\\Ascension PTR\\Resources\\ascension_ptr\\Interface\\AddOns',
         null,
         'CoA',
       ),
