@@ -598,6 +598,20 @@ function App() {
                         ? "Add entries to the remote catalog and refresh the library."
                         : "Adjust the search or filter to bring addons back into view."}
                     </p>
+                    {addons.length > 0 && (activeFilter !== "all" || searchQuery) ? (
+                      <div className="empty-actions">
+                        <button
+                          type="button"
+                          className="ghost"
+                          onClick={() => {
+                            setActiveFilter("all");
+                            setSearchQuery("");
+                          }}
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </article>
