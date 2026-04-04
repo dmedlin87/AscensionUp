@@ -90,22 +90,20 @@ function App() {
   }, [inspection, selectedTargetChoice]);
 
   const metrics = useMemo(() => {
-    let updates = 0;
-    let installed = 0;
-    let errors = 0;
+    const counts: Record<LibraryFilter, number> = {
+      all: addons.length,
+      updates: 0,
+      installed: 0,
+      issues: 0,
+    };
 
     for (const addon of addons) {
-      if (addon.status === "updateAvailable") updates++;
-      if (addon.installedVersion) installed++;
-      if (addon.status === "error") errors++;
+      if (addon.status === "updateAvailable") counts.updates++;
+      if (addon.installedVersion) counts.installed++;
+      if (addon.status === "error") counts.issues++;
     }
 
-    return {
-      total: addons.length,
-      updates,
-      installed,
-      errors,
-    };
+    return counts;
   }, [addons]);
 
   const filteredAddons = useMemo(
@@ -298,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone="warm" />
               <StatTile label="Installed" value={String(metrics.installed)} tone="good" />
-              <StatTile label="Issues" value={String(metrics.errors)} tone="bad" />
+              <StatTile label="Issues" value={String(metrics.issues)} tone="bad" />
             </div>
           </section>
 
@@ -522,7 +520,7 @@ function App() {
                 onClick={() => setActiveFilter(filterKey)}
               >
                 <span>{FILTER_LABELS[filterKey]}</span>
-                <strong>{countForFilter(addons, filterKey)}</strong>
+                <strong>{metrics[filterKey]}</strong>
               </button>
             ))}
           </section>
@@ -598,6 +596,20 @@ function App() {
                         ? "Add entries to the remote catalog and refresh the library."
                         : "Adjust the search or filter to bring addons back into view."}
                     </p>
+                    {addons.length > 0 && (activeFilter !== "all" || searchQuery) ? (
+                      <div className="empty-actions">
+                        <button
+                          type="button"
+                          className="ghost"
+                          onClick={() => {
+                            setActiveFilter("all");
+                            setSearchQuery("");
+                          }}
+                        >
+                          Clear Filters
+                        </button>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </article>
@@ -778,10 +790,6 @@ function AddonListRow({
       </div>
     </article>
   );
-}
-
-function countForFilter(addons: AddonRow[], filter: LibraryFilter) {
-  return addons.filter((addon) => matchesFilter(addon, filter)).length;
 }
 
 function getPreferredAddonPath(

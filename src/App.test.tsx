@@ -284,4 +284,20 @@ describe('App', () => {
 
     expect(await screen.findByRole('button', { name: /Update All/i })).toBeDisabled();
   });
+
+  it('clears filters when the clear button is clicked in the empty state', async () => {
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText('Search addons...');
+    fireEvent.change(searchInput, { target: { value: 'NonExistentAddon' } });
+
+    expect(await screen.findByRole('heading', { name: /No addons match this view./i })).toBeInTheDocument();
+
+    const clearButton = screen.getByRole('button', { name: /Clear Filters/i });
+    fireEvent.click(clearButton);
+
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+    expect(searchInput).toHaveValue('');
+  });
 });

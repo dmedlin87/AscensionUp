@@ -85,6 +85,14 @@ mod tests {
     use super::SettingsStore;
     use crate::domain::{LocalState, TargetPathState};
 
+    const BRONZEBEARD_GAME_PATH: &str = r"C:\Games\Ascension";
+    const BRONZEBEARD_EXE_PATH: &str = r"C:\Games\Ascension\Ascension.exe";
+    const BRONZEBEARD_ADDON_PATH: &str = r"C:\Games\Ascension\Interface\AddOns";
+
+    const COA_GAME_PATH: &str = r"C:\Games\Ascension PTR";
+    const COA_EXE_PATH: &str = r"C:\Games\Ascension PTR\Ascension.exe";
+    const COA_ADDON_PATH: &str = r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns";
+
     #[test]
     fn load_rehydrates_the_selected_target_profile() {
         let temp = tempdir().expect("tempdir");
@@ -95,17 +103,17 @@ mod tests {
         state.target_profiles.insert(
             "Bronzebeard".to_string(),
             TargetPathState {
-                game_path: Some(r"C:\Games\Ascension".to_string()),
-                game_executable_path: Some(r"C:\Games\Ascension\Ascension.exe".to_string()),
-                addon_path: Some(r"C:\Games\Ascension\Interface\AddOns".to_string()),
+                game_path: Some(BRONZEBEARD_GAME_PATH.to_string()),
+                game_executable_path: Some(BRONZEBEARD_EXE_PATH.to_string()),
+                addon_path: Some(BRONZEBEARD_ADDON_PATH.to_string()),
             },
         );
         state.target_profiles.insert(
             "CoA".to_string(),
             TargetPathState {
-                game_path: Some(r"C:\Games\Ascension PTR".to_string()),
-                game_executable_path: Some(r"C:\Games\Ascension PTR\Ascension.exe".to_string()),
-                addon_path: Some(r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns".to_string()),
+                game_path: Some(COA_GAME_PATH.to_string()),
+                game_executable_path: Some(COA_EXE_PATH.to_string()),
+                addon_path: Some(COA_ADDON_PATH.to_string()),
             },
         );
 
@@ -119,14 +127,11 @@ mod tests {
         let loaded = store.load().expect("load");
 
         assert_eq!(loaded.selected_target, "CoA");
-        assert_eq!(loaded.game_path.as_deref(), Some(r"C:\Games\Ascension PTR"));
-        assert_eq!(
-            loaded.addon_path.as_deref(),
-            Some(r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns")
-        );
+        assert_eq!(loaded.game_path.as_deref(), Some(COA_GAME_PATH));
+        assert_eq!(loaded.addon_path.as_deref(), Some(COA_ADDON_PATH));
         assert_eq!(
             loaded.game_executable_path.as_deref(),
-            Some(r"C:\Games\Ascension PTR\Ascension.exe")
+            Some(COA_EXE_PATH)
         );
     }
 }
