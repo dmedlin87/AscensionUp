@@ -432,8 +432,9 @@ mod tests {
         let inspection = TargetDetector::inspect(&game_root).expect("inspection");
 
         assert_eq!(inspection.verification, PathVerification::Verified);
+        let expected_root = super::canonicalize_lossy(&game_root);
         let expected = display_path(
-            &game_root
+            &expected_root
                 .join("Resources")
                 .join("ascension_ptr")
                 .join("Interface")
