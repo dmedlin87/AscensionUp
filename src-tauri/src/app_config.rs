@@ -121,6 +121,10 @@ pub fn installer_download_url() -> String {
 mod tests {
     use super::*;
 
+    const TEST_BRONZEBEARD_PATH: &str = r"C:\Games\Ascension";
+    const TEST_COA_PTR_PATH: &str = r"C:\Program Files\Ascension PTR";
+    const TEST_COA_LAUNCHER_PTR_PATH: &str = r"C:\Program Files\Ascension Launcher\resources\ascension_ptr";
+
     #[test]
     fn test_installer_repo_owner_default() {
         assert_eq!(installer_repo_owner(), "dmedlin87");
@@ -167,7 +171,7 @@ mod tests {
     fn resolves_coa_target_from_ptr_path() {
         let target = resolve_target_name(
             Some(TARGET_NAME),
-            &[Some(r"C:\Program Files\Ascension PTR"), None],
+            &[Some(TEST_COA_PTR_PATH), None],
         );
 
         assert_eq!(target, COA_TARGET_NAME);
@@ -177,7 +181,7 @@ mod tests {
     fn resolves_coa_target_from_ascension_ptr_path() {
         let target = resolve_target_name(
             Some(TARGET_NAME),
-            &[Some(r"C:\Program Files\Ascension Launcher\resources\ascension_ptr"), None],
+            &[Some(TEST_COA_LAUNCHER_PTR_PATH), None],
         );
 
         assert_eq!(target, COA_TARGET_NAME);
@@ -185,7 +189,7 @@ mod tests {
 
     #[test]
     fn preserves_supported_target_when_no_coa_hint_exists() {
-        let target = resolve_target_name(Some(COA_TARGET_NAME), &[Some(r"C:\Games\Ascension")]);
+        let target = resolve_target_name(Some(COA_TARGET_NAME), &[Some(TEST_BRONZEBEARD_PATH)]);
 
         assert_eq!(target, COA_TARGET_NAME);
     }
