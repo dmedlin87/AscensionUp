@@ -58,7 +58,7 @@ Rules:
 - `addonId` must match the installer catalog entry.
 - `folders` must exactly match the catalog entry folders.
 - `assetName` must exactly match the uploaded zip asset name.
-- `targetSupport` must include `Bronzebeard` or `CoA`, depending on the addon build.
+- `targetSupport` must include both `Bronzebeard` and `CoA` for dual-profile addons; intentionally single-target builds may list only the supported target.
 - `minInstallerVersion` must be valid semver.
 
 ## Catalog Entry

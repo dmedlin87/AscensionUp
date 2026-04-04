@@ -54,11 +54,13 @@ export function confirmGamePath(
   gamePath: string,
   addonPath: string,
   gameExecutablePath?: string | null,
+  selectedTarget?: string | null,
 ) {
   return invokeCommand<AppSnapshot>("confirmGamePath", {
     gamePath,
     addonPath,
     gameExecutablePath,
+    selectedTarget,
   });
 }
 

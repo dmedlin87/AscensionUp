@@ -8,6 +8,7 @@ use crate::{
     domain::{
         AddonRow, AddonStatus, AppSnapshot, CatalogResolution, CommandEnvelope,
         InstalledAddonState, OperationResult, PathInspection, PathVerification,
+        TargetPathState,
     },
     error::InstallerError,
     runtime::AppRuntime,
@@ -65,6 +66,7 @@ pub async fn confirmGamePath(
     game_path: String,
     addon_path: String,
     game_executable_path: Option<String>,
+    selected_target: Option<String>,
     runtime: State<'_, AppRuntime>,
 ) -> Result<CommandEnvelope<AppSnapshot>, String> {
     let result = async {
@@ -98,20 +100,32 @@ pub async fn confirmGamePath(
 
         let mut state = runtime.settings_store().load()?;
         let current_target = state.selected_target.clone();
+        let remembered_game_executable_path = inspection
+            .game_executable_path
+            .clone()
+            .or(game_executable_path.clone());
         let replacing_existing = state
             .game_path
             .as_ref()
             .is_some_and(|saved| saved != &inspection.normalized_game_path);
         state.game_path = Some(inspection.normalized_game_path.clone());
-        state.game_executable_path = inspection.game_executable_path.clone().or(game_executable_path);
+        state.game_executable_path = remembered_game_executable_path.clone();
         state.addon_path = Some(chosen.path.clone());
         state.selected_target = app_config::resolve_target_name(
-            Some(current_target.as_str()),
+            selected_target.as_deref().or(Some(current_target.as_str())),
             &[
                 Some(inspection.normalized_game_path.as_str()),
                 inspection.game_executable_path.as_deref(),
                 Some(chosen.path.as_str()),
             ],
+        );
+        let resolved_target = state.selected_target.clone();
+        remember_detected_target_profiles(
+            &mut state,
+            &inspection,
+            &resolved_target,
+            remembered_game_executable_path.as_deref(),
+            &chosen.path,
         );
         if replacing_existing {
             state.installed_addons.clear();
@@ -303,6 +317,59 @@ fn current_path_status(
     let inspection = TargetDetector::inspect(&PathBuf::from(selected))?;
 
     Ok((inspection.verification, Some(inspection.message)))
+}
+
+fn remember_detected_target_profiles(
+    state: &mut crate::domain::LocalState,
+    inspection: &PathInspection,
+    current_target: &str,
+    game_executable_path: Option<&str>,
+    confirmed_addon_path: &str,
+) {
+    let profile = TargetPathState {
+        game_path: Some(inspection.normalized_game_path.clone()),
+        game_executable_path: inspection
+            .game_executable_path
+            .clone()
+            .or_else(|| game_executable_path.map(str::to_string)),
+        addon_path: Some(confirmed_addon_path.to_string()),
+    };
+    state.remember_target_profile(current_target, profile);
+
+    for candidate in &inspection.candidate_addon_paths {
+        if !candidate.exists || candidate.path == confirmed_addon_path {
+            continue;
+        }
+
+        if let Some(target) = companion_target_for_candidate(current_target, &candidate.path) {
+            state.remember_target_profile(
+                target,
+                TargetPathState {
+                    game_path: Some(inspection.normalized_game_path.clone()),
+                    game_executable_path: inspection
+                        .game_executable_path
+                        .clone()
+                        .or_else(|| game_executable_path.map(str::to_string)),
+                    addon_path: Some(candidate.path.clone()),
+                },
+            );
+        }
+    }
+}
+
+fn companion_target_for_candidate(current_target: &str, candidate_path: &str) -> Option<&'static str> {
+    let is_live_target = current_target.eq_ignore_ascii_case(app_config::TARGET_NAME);
+    let is_coa_target = current_target.eq_ignore_ascii_case(app_config::COA_TARGET_NAME);
+
+    if is_live_target {
+        app_config::infer_target_name_from_path_hint(candidate_path)
+            .filter(|target| *target == app_config::COA_TARGET_NAME)
+    } else if is_coa_target {
+        app_config::infer_target_name_from_path_hint(candidate_path)
+            .filter(|target| *target == app_config::TARGET_NAME)
+    } else {
+        None
+    }
 }
 
 async fn build_addon_rows(

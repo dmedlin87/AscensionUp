@@ -45,6 +45,7 @@ impl SettingsStore {
                 state.addon_path.as_deref(),
             ],
         );
+        state.activate_selected_target_profile();
 
         Ok(state)
     }
@@ -60,7 +61,10 @@ impl SettingsStore {
             })?;
         }
 
-        let serialized = serde_json::to_string_pretty(state).map_err(|err| {
+        let mut state_to_save = state.clone();
+        state_to_save.remember_selected_target_profile();
+
+        let serialized = serde_json::to_string_pretty(&state_to_save).map_err(|err| {
             InstallerError::validation_with_details(
                 "state_serialize",
                 "Could not serialize local state.",
@@ -69,6 +73,66 @@ impl SettingsStore {
         })?;
 
         atomic_write(&self.state_file, serialized.as_bytes())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use tempfile::tempdir;
+
+    use super::SettingsStore;
+    use crate::domain::{LocalState, TargetPathState};
+
+    const BRONZEBEARD_GAME_PATH: &str = r"C:\Games\Ascension";
+    const BRONZEBEARD_EXE_PATH: &str = r"C:\Games\Ascension\Ascension.exe";
+    const BRONZEBEARD_ADDON_PATH: &str = r"C:\Games\Ascension\Interface\AddOns";
+
+    const COA_GAME_PATH: &str = r"C:\Games\Ascension PTR";
+    const COA_EXE_PATH: &str = r"C:\Games\Ascension PTR\Ascension.exe";
+    const COA_ADDON_PATH: &str = r"C:\Games\Ascension PTR\Resources\ascension_ptr\Interface\AddOns";
+
+    #[test]
+    fn load_rehydrates_the_selected_target_profile() {
+        let temp = tempdir().expect("tempdir");
+        let state_file = temp.path().join("state.json");
+
+        let mut state = LocalState::default();
+        state.selected_target = "CoA".to_string();
+        state.target_profiles.insert(
+            "Bronzebeard".to_string(),
+            TargetPathState {
+                game_path: Some(BRONZEBEARD_GAME_PATH.to_string()),
+                game_executable_path: Some(BRONZEBEARD_EXE_PATH.to_string()),
+                addon_path: Some(BRONZEBEARD_ADDON_PATH.to_string()),
+            },
+        );
+        state.target_profiles.insert(
+            "CoA".to_string(),
+            TargetPathState {
+                game_path: Some(COA_GAME_PATH.to_string()),
+                game_executable_path: Some(COA_EXE_PATH.to_string()),
+                addon_path: Some(COA_ADDON_PATH.to_string()),
+            },
+        );
+
+        fs::write(
+            &state_file,
+            serde_json::to_string_pretty(&state).expect("serialize"),
+        )
+        .expect("write state");
+
+        let store = SettingsStore::new(state_file);
+        let loaded = store.load().expect("load");
+
+        assert_eq!(loaded.selected_target, "CoA");
+        assert_eq!(loaded.game_path.as_deref(), Some(COA_GAME_PATH));
+        assert_eq!(loaded.addon_path.as_deref(), Some(COA_ADDON_PATH));
+        assert_eq!(
+            loaded.game_executable_path.as_deref(),
+            Some(COA_EXE_PATH)
+        );
     }
 }
 

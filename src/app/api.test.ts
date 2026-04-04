@@ -72,11 +72,12 @@ describe('api functions', () => {
 
     it('confirmGamePath calls invoke with paths', async () => {
       vi.mocked(invoke).mockResolvedValue({ data: {}, error: null });
-      await confirmGamePath('game/path', 'addon/path', 'exe/path');
+      await confirmGamePath('game/path', 'addon/path', 'exe/path', 'CoA');
       expect(invoke).toHaveBeenCalledWith('confirmGamePath', {
         gamePath: 'game/path',
         addonPath: 'addon/path',
-        gameExecutablePath: 'exe/path'
+        gameExecutablePath: 'exe/path',
+        selectedTarget: 'CoA',
       });
     });
 
@@ -86,7 +87,8 @@ describe('api functions', () => {
       expect(invoke).toHaveBeenCalledWith('confirmGamePath', {
         gamePath: 'game/path',
         addonPath: 'addon/path',
-        gameExecutablePath: undefined
+        gameExecutablePath: undefined,
+        selectedTarget: undefined,
       });
     });
 

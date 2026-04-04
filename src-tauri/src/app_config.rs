@@ -20,7 +20,7 @@ pub fn resolve_target_name(selected_target: Option<&str>, path_hints: &[Option<&
     if path_hints
         .iter()
         .flatten()
-        .any(|hint| path_looks_like_coa(hint))
+        .any(|hint| infer_target_name_from_path_hint(hint).is_some_and(|target| target == COA_TARGET_NAME))
     {
         COA_TARGET_NAME.to_string()
     } else if let Some(target) = selected_target.filter(|target| is_supported_target(target)) {
@@ -29,6 +29,16 @@ pub fn resolve_target_name(selected_target: Option<&str>, path_hints: &[Option<&
             .to_string()
     } else {
         TARGET_NAME.to_string()
+    }
+}
+
+pub fn infer_target_name_from_path_hint(path: &str) -> Option<&'static str> {
+    if path_looks_like_coa(path) {
+        Some(COA_TARGET_NAME)
+    } else if path_looks_like_live(path) {
+        Some(TARGET_NAME)
+    } else {
+        None
     }
 }
 
@@ -45,6 +55,7 @@ fn canonical_target_name(target: &str) -> Option<&'static str> {
 fn path_looks_like_coa(path: &str) -> bool {
     let normalized = path.replace('/', "\\").to_ascii_lowercase();
     normalized.contains("ascension ptr")
+        || normalized.contains("ascension_ptr")
         || normalized.contains("\\ptr\\")
         || normalized.ends_with("\\ptr")
         || normalized.contains("\\coa\\")
@@ -52,6 +63,17 @@ fn path_looks_like_coa(path: &str) -> bool {
         || normalized.contains("\\rexxar\\")
         || normalized.ends_with("\\rexxar")
         || normalized.contains("conquest of azeroth")
+}
+
+fn path_looks_like_live(path: &str) -> bool {
+    let normalized = path.replace('/', "\\").to_ascii_lowercase();
+    if path_looks_like_coa(&normalized) {
+        return false;
+    }
+
+    normalized.contains("\\resources\\client\\")
+        || normalized.ends_with("\\interface\\addons")
+        || normalized.contains("\\interface\\addons\\")
 }
 
 pub fn installer_repo_owner() -> String {
@@ -99,6 +121,10 @@ pub fn installer_download_url() -> String {
 mod tests {
     use super::*;
 
+    const TEST_BRONZEBEARD_PATH: &str = r"C:\Games\Ascension";
+    const TEST_COA_PTR_PATH: &str = r"C:\Program Files\Ascension PTR";
+    const TEST_COA_LAUNCHER_PTR_PATH: &str = r"C:\Program Files\Ascension Launcher\resources\ascension_ptr";
+
     #[test]
     fn test_installer_repo_owner_default() {
         assert_eq!(installer_repo_owner(), "dmedlin87");
@@ -145,7 +171,17 @@ mod tests {
     fn resolves_coa_target_from_ptr_path() {
         let target = resolve_target_name(
             Some(TARGET_NAME),
-            &[Some(r"C:\Program Files\Ascension PTR"), None],
+            &[Some(TEST_COA_PTR_PATH), None],
+        );
+
+        assert_eq!(target, COA_TARGET_NAME);
+    }
+
+    #[test]
+    fn resolves_coa_target_from_ascension_ptr_path() {
+        let target = resolve_target_name(
+            Some(TARGET_NAME),
+            &[Some(TEST_COA_LAUNCHER_PTR_PATH), None],
         );
 
         assert_eq!(target, COA_TARGET_NAME);
@@ -153,8 +189,32 @@ mod tests {
 
     #[test]
     fn preserves_supported_target_when_no_coa_hint_exists() {
-        let target = resolve_target_name(Some(COA_TARGET_NAME), &[Some(r"C:\Games\Ascension")]);
+        let target = resolve_target_name(Some(COA_TARGET_NAME), &[Some(TEST_BRONZEBEARD_PATH)]);
 
         assert_eq!(target, COA_TARGET_NAME);
+    }
+
+    #[test]
+    fn test_is_supported_target() {
+        assert!(is_supported_target("Bronzebeard"));
+        assert!(is_supported_target("bronzebeard"));
+        assert!(is_supported_target("CoA"));
+        assert!(is_supported_target("coa"));
+        assert!(!is_supported_target("InvalidTarget"));
+        assert!(!is_supported_target(""));
+    }
+
+    #[test]
+    fn test_contains_target() {
+        let targets = vec!["Bronzebeard".to_string(), "CoA".to_string()];
+        assert!(contains_target(&targets, "Bronzebeard"));
+        assert!(contains_target(&targets, "bronzebeard"));
+        assert!(contains_target(&targets, "CoA"));
+        assert!(contains_target(&targets, "coa"));
+        assert!(!contains_target(&targets, "InvalidTarget"));
+        assert!(!contains_target(&targets, ""));
+
+        let empty: Vec<String> = vec![];
+        assert!(!contains_target(&empty, "Bronzebeard"));
     }
 }
