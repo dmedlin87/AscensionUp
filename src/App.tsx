@@ -296,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
-              <StatTile label="Updates" value={String(metrics.updates)} tone="warm" />
-              <StatTile label="Installed" value={String(metrics.installed)} tone="good" />
-              <StatTile label="Issues" value={String(metrics.issues)} tone="bad" />
+              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
+              <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -593,7 +593,9 @@ function App() {
                     <h3>No addons match this view.</h3>
                     <p>
                       {addons.length === 0
-                        ? "Add entries to the remote catalog and refresh the library."
+                        ? snapshot?.catalogStatus === "unavailable"
+                          ? "The remote catalog could not be reached. Check your connection or the catalog URL."
+                          : "Add entries to the remote catalog and refresh the library."
                         : "Adjust the search or filter to bring addons back into view."}
                     </p>
                     {addons.length > 0 && (activeFilter !== "all" || searchQuery) ? (
