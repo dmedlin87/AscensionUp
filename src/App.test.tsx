@@ -314,4 +314,21 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
     expect(searchInput).toHaveValue('');
   });
+
+  it('shows a clear button in the search input and clears search query when clicked', async () => {
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText('Search addons...');
+    expect(screen.queryByRole('button', { name: /Clear search/i })).not.toBeInTheDocument();
+
+    fireEvent.change(searchInput, { target: { value: 'Priest' } });
+
+    const clearButton = await screen.findByRole('button', { name: /Clear search/i });
+    expect(clearButton).toBeInTheDocument();
+
+    fireEvent.click(clearButton);
+    expect(searchInput).toHaveValue('');
+    expect(screen.queryByRole('button', { name: /Clear search/i })).not.toBeInTheDocument();
+  });
 });
