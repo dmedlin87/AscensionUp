@@ -189,4 +189,28 @@ mod tests {
 
         assert_eq!(target, COA_TARGET_NAME);
     }
+
+    #[test]
+    fn test_is_supported_target() {
+        assert!(is_supported_target("Bronzebeard"));
+        assert!(is_supported_target("bronzebeard"));
+        assert!(is_supported_target("CoA"));
+        assert!(is_supported_target("coa"));
+        assert!(!is_supported_target("InvalidTarget"));
+        assert!(!is_supported_target(""));
+    }
+
+    #[test]
+    fn test_contains_target() {
+        let targets = vec!["Bronzebeard".to_string(), "CoA".to_string()];
+        assert!(contains_target(&targets, "Bronzebeard"));
+        assert!(contains_target(&targets, "bronzebeard"));
+        assert!(contains_target(&targets, "CoA"));
+        assert!(contains_target(&targets, "coa"));
+        assert!(!contains_target(&targets, "InvalidTarget"));
+        assert!(!contains_target(&targets, ""));
+
+        let empty: Vec<String> = vec![];
+        assert!(!contains_target(&empty, "Bronzebeard"));
+    }
 }
