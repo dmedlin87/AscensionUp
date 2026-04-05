@@ -296,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
               <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
-              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.issues)} tone={metrics.issues > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -380,10 +380,10 @@ function App() {
               </div>
               <div className="rail-actions">
                 <button type="button" onClick={() => void choosePath("directory")}>
-                  Choose Folder
+                  Choose Game Folder
                 </button>
                 <button type="button" className="ghost" onClick={() => void choosePath("file")}>
-                  Choose Executable
+                  Choose Game Executable
                 </button>
                 {snapshot && !snapshot.needsSetup ? (
                   <button
@@ -529,6 +529,14 @@ function App() {
             <section className="message-strip error">
               <strong>Action failed</strong>
               <p>{errorMessage}</p>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setErrorMessage(null)}
+                aria-label="Dismiss error"
+              >
+                Dismiss
+              </button>
             </section>
           ) : null}
 
@@ -536,6 +544,14 @@ function App() {
             <section className="message-strip success">
               <strong>Action complete</strong>
               <p>{actionMessage}</p>
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setActionMessage(null)}
+                aria-label="Dismiss message"
+              >
+                Dismiss
+              </button>
             </section>
           ) : null}
 
@@ -581,10 +597,10 @@ function App() {
                     <p>Please complete the setup to begin managing your library.</p>
                     <div className="empty-actions">
                       <button type="button" onClick={() => void choosePath("directory")}>
-                        Choose Folder
+                        Choose Game Folder
                       </button>
                       <button type="button" className="ghost" onClick={() => void choosePath("file")}>
-                        Choose Executable
+                        Choose Game Executable
                       </button>
                     </div>
                   </>

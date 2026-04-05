@@ -175,7 +175,7 @@ describe('App', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Welcome to AscensionUp/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Setup Required/i })).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /Choose Folder/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /Choose Game Folder/i }).length).toBeGreaterThan(0);
   });
 
   it('shows an in-app error when the dialog bridge is unavailable', async () => {
@@ -194,7 +194,7 @@ describe('App', () => {
 
     render(<App />);
 
-    const buttons = await screen.findAllByRole('button', { name: /Choose Folder/i });
+    const buttons = await screen.findAllByRole('button', { name: /Choose Game Folder/i });
     fireEvent.click(buttons[0]);
 
     expect(
@@ -237,7 +237,7 @@ describe('App', () => {
     render(<App />);
 
     await screen.findByRole('heading', { name: /Bind Install/i });
-    fireEvent.click(screen.getAllByRole('button', { name: /Choose Folder/i })[0]);
+    fireEvent.click(screen.getAllByRole('button', { name: /Choose Game Folder/i })[0]);
     await screen.findByRole('button', { name: /Confirm Path/i });
     fireEvent.click(screen.getByRole('radio', { name: /PTR \/ CoA/i }));
     fireEvent.click(screen.getByRole('button', { name: /Confirm Path/i }));
