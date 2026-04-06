@@ -139,6 +139,8 @@ describe('App', () => {
     expect(screen.getByText(hasExactText('Latest: 1.1.0'))).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Update All \(1\)/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Addon Manager/i })).toBeInTheDocument();
+    expect(screen.getByText('Tracked')).toBeInTheDocument();
+    expect(screen.getAllByText('Issues').length).toBeGreaterThan(0);
   });
 
   it('shows the unavailable message when the catalog cannot be reached', async () => {
