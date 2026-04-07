@@ -66,7 +66,8 @@ function App() {
     void loadData();
   }, []);
 
-  const showSetup = editingPath || !snapshot || snapshot.needsSetup;
+  const isFirstRun = !snapshot || snapshot.needsSetup;
+  const showSetup = editingPath || isFirstRun;
   const addons = snapshot?.addonRows ?? [];
   const deferredSearch = useDeferredValue(searchQuery.trim().toLowerCase());
 
@@ -296,10 +297,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
               <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
-              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.issues)} tone={metrics.issues > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -457,16 +458,20 @@ function App() {
             <div className="hero-copy">
               <p className="eyebrow">My Addons</p>
               <h2>
-                {showSetup
+                {isFirstRun
                   ? "Welcome to AscensionUp"
-                  : metrics.updates > 0
-                    ? `${metrics.updates} addon${metrics.updates === 1 ? "" : "s"} waiting for update`
-                    : "Managed addons are currently in sync"}
+                  : editingPath
+                    ? "Update Environment Path"
+                    : metrics.updates > 0
+                      ? `${metrics.updates} addon${metrics.updates === 1 ? "" : "s"} waiting for update`
+                      : "Managed addons are currently in sync"}
               </h2>
               <p>
-                {showSetup
+                {isFirstRun
                   ? "Bind your game and AddOn folders in the sidebar to begin managing your library."
-                  : "Track versions, spot failures, and push updates from a single library without touching unmanaged AddOns."}
+                  : editingPath
+                    ? "Choose a new game directory or executable in the sidebar to update your environment paths."
+                    : "Track versions, spot failures, and push updates from a single library without touching unmanaged AddOns."}
               </p>
             </div>
             <span className="hero-refresh">
@@ -575,19 +580,26 @@ function App() {
                     <line x1="12" y1="22.08" x2="12" y2="12" />
                   </svg>
                 </div>
-                {showSetup ? (
-                  <>
-                    <h3>Setup Required</h3>
-                    <p>Please complete the setup to begin managing your library.</p>
-                    <div className="empty-actions">
-                      <button type="button" onClick={() => void choosePath("directory")}>
-                        Choose Folder
-                      </button>
-                      <button type="button" className="ghost" onClick={() => void choosePath("file")}>
-                        Choose Executable
-                      </button>
-                    </div>
-                  </>
+                {isFirstRun ? (
+                  inspection ? (
+                    <>
+                      <h3>Review Path</h3>
+                      <p>Review the detected path in the sidebar and confirm to continue.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3>Setup Required</h3>
+                      <p>Please complete the setup to begin managing your library.</p>
+                      <div className="empty-actions">
+                        <button type="button" onClick={() => void choosePath("directory")}>
+                          Choose Folder
+                        </button>
+                        <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                          Choose Executable
+                        </button>
+                      </div>
+                    </>
+                  )
                 ) : (
                   <>
                     <h3>No addons match this view.</h3>

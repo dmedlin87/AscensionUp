@@ -299,6 +299,60 @@ describe('App', () => {
     expect(await screen.findByRole('button', { name: /Update All/i })).toBeDisabled();
   });
 
+  it('differentiates first run from changing game path in hero copy', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue(configuredSnapshot);
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Welcome to AscensionUp/i })).not.toBeInTheDocument();
+
+    const changePathButton = screen.getByRole('button', { name: /Change Game Folder/i });
+    fireEvent.click(changePathButton);
+
+    expect(await screen.findByRole('heading', { name: /Update Environment Path/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Welcome to AscensionUp/i })).not.toBeInTheDocument();
+  });
+
+  it('updates the empty state guidance when a path is being inspected during first run', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      needsSetup: true,
+      gamePath: null,
+      addonPath: null,
+      addonRows: [],
+      pathVerification: 'invalid',
+      pathMessage: 'Choose an Ascension or CoA folder or executable to begin.',
+    });
+    apiMocks.dialogOpen.mockResolvedValue('C:\\Games\\Ascension');
+    apiMocks.inspectGamePath.mockResolvedValue({
+      normalizedGamePath: 'C:\\Games\\Ascension',
+      gameExecutablePath: null,
+      verification: 'verified',
+      candidateAddonPaths: [
+        {
+          path: 'C:\\Games\\Ascension\\Resources\\Client\\Interface\\AddOns',
+          exists: true,
+          label: 'Resources\\Client\\Interface\\AddOns',
+        },
+      ],
+      proposedAddonPath: 'C:\\Games\\Ascension\\Resources\\Client\\Interface\\AddOns',
+      message: 'Found one valid addon directory.',
+      ascensionHints: [],
+    });
+
+    render(<App />);
+
+    await screen.findByRole('heading', { name: /Setup Required/i });
+    expect(screen.getAllByRole('button', { name: /Choose Folder/i }).length).toBeGreaterThan(1);
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Choose Folder/i })[0]);
+    await screen.findByRole('button', { name: /Confirm Path/i });
+
+    expect(await screen.findByRole('heading', { name: /Review Path/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Setup Required/i })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /Choose Folder/i }).length).toBe(1); // Only the one in sidebar is visible
+  });
+
   it('clears filters when the clear button is clicked in the empty state', async () => {
     render(<App />);
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
