@@ -780,7 +780,36 @@ code { font-family: var(--font-mono); }
 
 .search-block input {
   padding-left: 34px;
+  padding-right: 34px;
   font-size: 0.82rem;
+}
+
+.clear-search {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.clear-search:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+  transform: translateY(-50%);
+  box-shadow: none;
+}
+
+.clear-search svg {
+  width: 14px;
+  height: 14px;
 }
 
 .command-actions {
@@ -877,6 +906,12 @@ code { font-family: var(--font-mono); }
   flex: 1;
   font-size: 0.8rem;
   color: var(--text-secondary);
+}
+
+.message-strip button.ghost {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+  flex-shrink: 0;
 }
 
 .message-strip.error {

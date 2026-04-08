@@ -314,4 +314,37 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
     expect(searchInput).toHaveValue('');
   });
+
+  it('can dismiss the installer update banner', async () => {
+    render(<App />);
+
+    expect(
+      await screen.findByText(/A newer installer version is available/i),
+    ).toBeInTheDocument();
+
+    const dismissButton = screen.getByRole('button', { name: /Dismiss update/i });
+    fireEvent.click(dismissButton);
+
+    expect(
+      screen.queryByText(/A newer installer version is available/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it('clears the search query when the clear search button is clicked', async () => {
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+
+    const searchInput = screen.getByPlaceholderText('Search addons...');
+    fireEvent.change(searchInput, { target: { value: 'NonExistentAddon' } });
+
+    const clearSearchButton = screen.getByRole('button', { name: /Clear search/i });
+    expect(clearSearchButton).toBeInTheDocument();
+
+    fireEvent.click(clearSearchButton);
+
+    expect(searchInput).toHaveValue('');
+    expect(screen.queryByRole('button', { name: /Clear search/i })).not.toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+  });
 });
