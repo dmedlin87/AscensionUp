@@ -435,7 +435,7 @@ mod tests {
         let expected_root = super::canonicalize_lossy(&game_root);
         let expected = display_path(
             &expected_root
-                .join("Resources")
+                .join("resources")
                 .join("ascension_ptr")
                 .join("Interface")
                 .join("AddOns"),

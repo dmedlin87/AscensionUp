@@ -897,6 +897,36 @@ code { font-family: var(--font-mono); }
 }
 .message-strip.highlight strong { color: var(--status-info); }
 
+.message-strip .dismiss-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  transition:
+    background var(--duration-fast) ease,
+    color var(--duration-fast) ease;
+}
+
+.message-strip .dismiss-btn:hover {
+  background: var(--bg-inset);
+  color: var(--text-primary);
+}
+
+.message-strip.error .dismiss-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--status-error);
+}
+
+.message-strip.success .dismiss-btn:hover {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--status-good);
+}
+
 /* ── List ───────────────────────────────────────────────── */
 .list-shell {
   flex: 1;
