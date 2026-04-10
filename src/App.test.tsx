@@ -314,4 +314,39 @@ describe('App', () => {
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
     expect(searchInput).toHaveValue('');
   });
+
+  it('allows dismissing action messages', async () => {
+    const uninstallSnapshot = {
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: 'installed',
+          canUninstall: true,
+        },
+      ],
+    };
+
+    apiMocks.uninstallAddon.mockResolvedValue({
+      snapshot: uninstallSnapshot as any,
+      notice: 'Uninstall complete.',
+    });
+
+    render(<App />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /Uninstall/i }));
+
+    // Accept the confirmation dialog that gets triggered on uninstall
+    await waitFor(() => expect(window.confirm).toHaveBeenCalled());
+
+    const message = await screen.findByText('Uninstall complete.');
+    expect(message).toBeInTheDocument();
+
+    const dismissButton = screen.getByRole('button', { name: /Dismiss message/i });
+    fireEvent.click(dismissButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Uninstall complete.')).not.toBeInTheDocument();
+    });
+  });
 });
