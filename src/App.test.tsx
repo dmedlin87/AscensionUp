@@ -176,6 +176,7 @@ describe('App', () => {
     expect(screen.getByRole('heading', { name: /Welcome to AscensionUp/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Setup Required/i })).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /Choose Folder/i }).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: /Setup Required/i })).toBeInTheDocument();
   });
 
   it('shows an in-app error when the dialog bridge is unavailable', async () => {
