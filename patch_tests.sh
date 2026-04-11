@@ -1,0 +1,1 @@
+sed -i "s/expect(screen.getAllByRole('button', { name: \/Choose Folder\/i }).length).toBeGreaterThan(0);/expect(screen.getAllByRole('button', { name: \/Choose Folder\/i }).length).toBeGreaterThan(0);\n    expect(screen.getByRole('heading', { name: \/Setup Required\/i })).toBeInTheDocument();/" src/App.test.tsx
