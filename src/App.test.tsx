@@ -155,6 +155,36 @@ describe('App', () => {
     ).toBeInTheDocument();
   });
 
+  it('updates the empty state when inspecting a game path', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      needsSetup: true,
+      gamePath: null,
+      addonPath: null,
+      addonRows: [],
+      pathVerification: 'invalid',
+      pathMessage: 'Choose an Ascension or CoA folder or executable to begin.',
+    });
+    apiMocks.dialogOpen.mockResolvedValue('C:\\Games\\Ascension');
+    apiMocks.inspectGamePath.mockResolvedValue({
+      normalizedGamePath: 'C:\\Games\\Ascension',
+      gameExecutablePath: null,
+      verification: 'verified',
+      candidateAddonPaths: [],
+      proposedAddonPath: null,
+      message: 'Found valid paths.',
+      ascensionHints: [],
+    });
+
+    render(<App />);
+
+    const buttons = await screen.findAllByRole('button', { name: /Choose Folder/i });
+    fireEvent.click(buttons[0]);
+
+    expect(await screen.findByRole('heading', { name: /Review Paths/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /Setup Required/i })).not.toBeInTheDocument();
+  });
+
   it('shows setup guidance when the game path is missing', async () => {
     apiMocks.bootstrapApp.mockResolvedValue({
       ...configuredSnapshot,

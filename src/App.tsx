@@ -296,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
               <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
-              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.issues)} tone={metrics.issues > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -576,18 +576,25 @@ function App() {
                   </svg>
                 </div>
                 {showSetup ? (
-                  <>
-                    <h3>Setup Required</h3>
-                    <p>Please complete the setup to begin managing your library.</p>
-                    <div className="empty-actions">
-                      <button type="button" onClick={() => void choosePath("directory")}>
-                        Choose Folder
-                      </button>
-                      <button type="button" className="ghost" onClick={() => void choosePath("file")}>
-                        Choose Executable
-                      </button>
-                    </div>
-                  </>
+                  inspection ? (
+                    <>
+                      <h3>Review Paths</h3>
+                      <p>Check the sidebar to verify your selected paths and confirm the setup.</p>
+                    </>
+                  ) : (
+                    <>
+                      <h3>Setup Required</h3>
+                      <p>Please complete the setup to begin managing your library.</p>
+                      <div className="empty-actions">
+                        <button type="button" onClick={() => void choosePath("directory")}>
+                          Choose Folder
+                        </button>
+                        <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                          Choose Executable
+                        </button>
+                      </div>
+                    </>
+                  )
                 ) : (
                   <>
                     <h3>No addons match this view.</h3>
