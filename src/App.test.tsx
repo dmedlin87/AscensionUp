@@ -306,12 +306,34 @@ describe('App', () => {
     const searchInput = screen.getByPlaceholderText('Search addons...');
     fireEvent.change(searchInput, { target: { value: 'NonExistentAddon' } });
 
-    expect(await screen.findByRole('heading', { name: /No addons match this view./i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /No search results/i })).toBeInTheDocument();
 
     const clearButton = screen.getByRole('button', { name: /Clear Filters/i });
     fireEvent.click(clearButton);
 
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
     expect(searchInput).toHaveValue('');
+  });
+
+  it('shows caught up message when filtering by updates with no updates available', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: 'installed',
+          canUpdate: false,
+        },
+      ],
+    });
+
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+
+    const updatesFilter = screen.getByRole('button', { name: /Needs Update/i });
+    fireEvent.click(updatesFilter);
+
+    expect(await screen.findByRole('heading', { name: /You're all caught up/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Clear Filters/i })).not.toBeInTheDocument();
   });
 });
