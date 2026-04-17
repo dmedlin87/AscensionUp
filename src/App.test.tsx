@@ -282,6 +282,15 @@ describe('App', () => {
     );
   });
 
+  it('hides the Reinstall button when an update is available', async () => {
+    apiMocks.bootstrapApp.mockResolvedValue(configuredSnapshot);
+    render(<App />);
+
+    expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reinstall' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument();
+  });
+
   it('disables the Update All button when there are no updates available', async () => {
     apiMocks.bootstrapApp.mockResolvedValue({
       ...configuredSnapshot,
