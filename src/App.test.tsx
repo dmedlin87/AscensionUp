@@ -308,7 +308,7 @@ describe('App', () => {
 
     expect(await screen.findByRole('heading', { name: /No addons match this view./i })).toBeInTheDocument();
 
-    const clearButton = screen.getByRole('button', { name: /Clear Filters/i });
+    const clearButton = screen.getAllByRole('button', { name: /Clear Search/i })[0];
     fireEvent.click(clearButton);
 
     expect(await screen.findByRole('heading', { name: /Priest Helper/i })).toBeInTheDocument();

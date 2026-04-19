@@ -296,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
               <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
-              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.issues)} tone={metrics.issues > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -488,6 +488,19 @@ function App() {
                 onChange={(event) => setSearchQuery(event.target.value)}
                 placeholder="Search addons..."
               />
+              {searchQuery ? (
+                <button
+                  type="button"
+                  className="search-clear"
+                  onClick={() => setSearchQuery("")}
+                  aria-label="Clear search"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              ) : null}
             </div>
             <div className="command-actions">
               {updateStatus?.available ? (
@@ -608,7 +621,11 @@ function App() {
                             setSearchQuery("");
                           }}
                         >
-                          Clear Filters
+                      {searchQuery && activeFilter === "all"
+                        ? "Clear Search"
+                        : !searchQuery && activeFilter !== "all"
+                          ? "Clear Filter"
+                          : "Clear Search & Filter"}
                         </button>
                       </div>
                     ) : null}
