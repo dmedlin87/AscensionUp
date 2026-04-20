@@ -259,7 +259,7 @@ describe('App', () => {
 
     await waitFor(() =>
       expect(window.confirm).toHaveBeenCalledWith(
-        'Uninstall Priest Helper? This removes only the managed addon folders from your AddOns directory.',
+        'Are you sure you want to uninstall Priest Helper?\n\nThis will remove the following folders from your AddOns directory:\n- PriestHelper',
       ),
     );
     await waitFor(() =>
@@ -274,7 +274,7 @@ describe('App', () => {
 
     await waitFor(() =>
       expect(window.confirm).toHaveBeenCalledWith(
-        'Rollback Priest Helper to its previously installed version?',
+        'Are you sure you want to rollback Priest Helper?\n\nThis will restore the previously installed version over the current one.',
       ),
     );
     await waitFor(() =>
