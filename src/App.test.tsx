@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, act } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import App from './App';
@@ -280,6 +280,40 @@ describe('App', () => {
     await waitFor(() =>
       expect(apiMocks.rollbackAddon).toHaveBeenCalledWith('priest-helper'),
     );
+  });
+
+  it('shows updating state on individual addon buttons when Update All is clicked', async () => {
+    let resolveUpdate: (value: any) => void;
+    const updatePromise = new Promise<any>((resolve) => {
+      resolveUpdate = resolve;
+    });
+
+    apiMocks.bootstrapApp.mockResolvedValue({
+      ...configuredSnapshot,
+      addonRows: [
+        {
+          ...configuredSnapshot.addonRows[0],
+          status: 'updateAvailable',
+          canUpdate: true,
+          installedVersion: '1.0.0',
+          latestVersion: '1.1.0',
+        },
+      ],
+    });
+    apiMocks.updateAllAddons.mockReturnValue(updatePromise);
+
+    render(<App />);
+
+    const updateAllBtn = await screen.findByRole('button', { name: /Update All/i });
+    fireEvent.click(updateAllBtn);
+
+    const updatingButtons = await screen.findAllByRole('button', { name: 'Updating...' });
+    expect(updatingButtons.length).toBeGreaterThan(0);
+
+    // Clean up the promise to prevent open handles
+    await act(async () => {
+      resolveUpdate!({ snapshot: configuredSnapshot });
+    });
   });
 
   it('disables the Update All button when there are no updates available', async () => {
