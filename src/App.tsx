@@ -296,10 +296,10 @@ function App() {
           <section className="rail-card">
             <p className="section-label">Library Health</p>
             <div className="rail-stats">
-              <StatTile label="Tracked" value={String(metrics.total)} tone="neutral" />
+              <StatTile label="Tracked" value={String(metrics.all)} tone="neutral" />
               <StatTile label="Updates" value={String(metrics.updates)} tone={metrics.updates > 0 ? "warm" : "neutral"} />
               <StatTile label="Installed" value={String(metrics.installed)} tone={metrics.installed > 0 ? "good" : "neutral"} />
-              <StatTile label="Issues" value={String(metrics.errors)} tone={metrics.errors > 0 ? "bad" : "neutral"} />
+              <StatTile label="Issues" value={String(metrics.issues)} tone={metrics.issues > 0 ? "bad" : "neutral"} />
             </div>
           </section>
 
@@ -578,15 +578,35 @@ function App() {
                 {showSetup ? (
                   <>
                     <h3>Setup Required</h3>
-                    <p>Please complete the setup to begin managing your library.</p>
-                    <div className="empty-actions">
-                      <button type="button" onClick={() => void choosePath("directory")}>
-                        Choose Folder
-                      </button>
-                      <button type="button" className="ghost" onClick={() => void choosePath("file")}>
-                        Choose Executable
-                      </button>
-                    </div>
+                    {inspection ? (
+                      inspection.verification === "invalid" ? (
+                        <>
+                          <p>The selected path is invalid. Please try another folder or executable.</p>
+                          <div className="empty-actions">
+                            <button type="button" onClick={() => void choosePath("directory")}>
+                              Choose Folder
+                            </button>
+                            <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                              Choose Executable
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <p>Review the detected paths in the sidebar and click Confirm Path to continue.</p>
+                      )
+                    ) : (
+                      <>
+                        <p>Please complete the setup to begin managing your library.</p>
+                        <div className="empty-actions">
+                          <button type="button" onClick={() => void choosePath("directory")}>
+                            Choose Folder
+                          </button>
+                          <button type="button" className="ghost" onClick={() => void choosePath("file")}>
+                            Choose Executable
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </>
                 ) : (
                   <>
@@ -729,7 +749,11 @@ function AddonListRow({
           <p className="version-line">{statusHeadline(addon)}</p>
           <div className="version-pills" aria-label="Addon versions">
             <span className="version-pill">
-              Installed: <strong>{addon.installedVersion ?? "Not installed"}</strong>
+              {addon.installedVersion ? (
+                <>Installed: <strong>{addon.installedVersion}</strong></>
+              ) : (
+                <strong>Not installed</strong>
+              )}
             </span>
             <span className="version-pill">
               Latest: <strong>{addon.latestVersion ?? "Unknown"}</strong>
