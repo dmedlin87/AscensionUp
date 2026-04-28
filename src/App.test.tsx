@@ -239,6 +239,14 @@ describe('App', () => {
     await screen.findByRole('heading', { name: /Bind Install/i });
     fireEvent.click(screen.getAllByRole('button', { name: /Choose Folder/i })[0]);
     await screen.findByRole('button', { name: /Confirm Path/i });
+
+    expect(
+      screen.getByText(/Review the detected paths in the sidebar and click Confirm Path to continue\./i),
+    ).toBeInTheDocument();
+
+    const chooseExecutableButtons = screen.getAllByRole('button', { name: /Choose Executable/i, hidden: false });
+    expect(chooseExecutableButtons).toHaveLength(1); // Only the one in the sidebar should exist
+
     fireEvent.click(screen.getByRole('radio', { name: /PTR \/ CoA/i }));
     fireEvent.click(screen.getByRole('button', { name: /Confirm Path/i }));
 
